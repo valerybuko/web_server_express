@@ -2,13 +2,10 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import {
     addNewUser,
-    deleteUser,
-    getAllUsers,
     getUserByEmail,
     getUserWithID,
-    updateUser,
     createVerificationToken,
-    confirmUser, updateUserPassword
+    confirmUser,
 } from "../services/user-service";
 import {
     createRefreshToken,

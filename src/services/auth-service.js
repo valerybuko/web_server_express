@@ -1,8 +1,7 @@
 import UsersSessions from "../sequelize/UsersSessionsModel";
+import jwt from 'jsonwebtoken';
 import redis from "../dal/redis";
 import VerificationTokens from "../sequelize/VerificationTokensModel";
-
-const jwt = require('jsonwebtoken');
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
