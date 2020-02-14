@@ -14,7 +14,7 @@ import {
     updateAccessToken,
     getRefreshToken,
     getVerificationToken,
-    verifyToken
+    verifyToken, deleteVerificationToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
@@ -69,6 +69,8 @@ module.exports = () => {
         const userId = userObject.dataValues.userId;
 
         await confirmUser(userId).catch(err => res.status(400).send());
+
+        await deleteVerificationToken(userId).catch(err => res.status(400).send());
 
         res.status(200).send();
     });

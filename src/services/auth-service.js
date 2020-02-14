@@ -15,6 +15,14 @@ export const generateVerificationToken = (user, tokentimelife) => {
     return jwt.sign({user: tokenData}, REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
 }
 
+export const deleteVerificationToken = (id) => {
+    return VerificationTokens.destroy({
+        where: {
+            id
+        }
+    })
+}
+
 export const createRefreshToken = async (user, tokentimelife) => {
     const token = await generateJWT(user, tokentimelife);
     return UsersSessions.create({tokenname: token, userId: user.id});
