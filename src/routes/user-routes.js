@@ -15,68 +15,6 @@ const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
 module.exports = () => {
-    router.post('/changepass', async (req, res) => {
-        const token = req.body.verificationToken;
-
-        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if (err) {
-                return res.status(403).send();
-            } else {
-                return true
-            }
-        });
-
-        if (isValid.exp < 10) {
-            res.status(403).send();
-        }
-
-        const isConfirmToken = await getVerificationToken(token);
-
-        if (!isConfirmToken) {
-            return res.status(400).send();
-        }
-
-        const useremail = req.body.confirmation_email;
-        await sendPasswordConfirmation(useremail).catch((err) => res.status(400).send());
-
-        return res.status(200).send();
-    });
-
-    router.put('/updatepass', [
-        check('newPassword', 'Enter a password with five or more characters').isLength({min: 5})
-    ], async (req, res) => {
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
-        }
-
-        const token = req.body.verificationToken;
-
-        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if (err) {
-                return res.status(403).send();
-            } else {
-                return true
-            }
-        });
-
-        if (isValid.exp < 10) {
-            res.status(403).send();
-        }
-
-        const isConfirmToken = await getVerificationToken(token);
-
-        if (!isConfirmToken) {
-            return res.status(400).send();
-        }
-
-        const userId = isConfirmToken.dataValues.userId;
-
-        await updateUserPassword(userId, req.body.newPassword);
-
-        res.status(200).send();
-    });
     router.get('/users', async (req, res) => {
         const allUsers = await getAllUsers().catch(err => res.status(400).send());
 

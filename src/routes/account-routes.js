@@ -4,7 +4,7 @@ import {
     getUserByEmail,
     getUserWithID,
     createVerificationToken,
-    confirmUser,
+    confirmUser, updateUserPassword,
 } from "../services/user-service";
 import {
     createRefreshToken,
@@ -18,7 +18,8 @@ import {
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
-import { sendUserConfirmation } from "../services/mailer-service";
+import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
@@ -73,12 +74,111 @@ module.exports = () => {
         res.status(200).send();
     });
 
+    router.post('/login', [
+        check('email').normalizeEmail().isEmail(),
+        check('password', 'Enter a password with five or more characters').isLength({min: 5})
+    ], async (req, res) => {
+        const errors = validationResult(req);
 
+        if (!errors.isEmpty()) {
+            return res.status(401).json({errors: errors.array()});
+        }
+
+        const {email, password} = req.body;
+        const appuserObject = await getUserByEmail(email);
+
+        if(!appuserObject) {
+            return res.status(401).send();
+        }
+
+        const appuser = appuserObject.dataValues;
+        const isUserConfirm = appuser.isConfirm;
+
+        if(!isUserConfirm) {
+            return res.status(403).send();
+        }
+
+        const isCorrectPassword = comparePassword(password, appuser.salt, appuser.password);
+        if (!isCorrectPassword) {
+            res.status(401).send();
+        }
+        const refreshToken = await createRefreshToken(appuser, '1d').catch(err => res.status(400).send());
+        const accessToken = await createAccessToken(appuser, '1h').catch(err => res.status(400).send());
+
+        const tokens = {
+            refreshToken: refreshToken.tokenname,
+            accessToken
+        }
+
+        res.status(200).send(tokens);
+    });
+
+    router.post('/changepass', async (req, res) => {
+        const token = req.body.verificationToken;
+
+        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
+            if (err) {
+                return res.status(403).send();
+            } else {
+                return true
+            }
+        });
+
+        if (isValid.exp < 10) {
+            res.status(403).send();
+        }
+
+        const isConfirmToken = await getVerificationToken(token);
+
+        if (!isConfirmToken) {
+            return res.status(400).send();
+        }
+
+        const useremail = req.body.confirmation_email;
+        await sendPasswordConfirmation(useremail).catch((err) => res.status(400).send());
+
+        return res.status(200).send();
+    });
+
+    router.put('/updatepass', [
+        check('newPassword', 'Enter a password with five or more characters').isLength({min: 5})
+    ], async (req, res) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
+        const token = req.body.verificationToken;
+
+        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
+            if (err) {
+                return res.status(403).send();
+            } else {
+                return true
+            }
+        });
+
+        if (isValid.exp < 10) {
+            res.status(403).send();
+        }
+
+        const isConfirmToken = await getVerificationToken(token);
+
+        if (!isConfirmToken) {
+            return res.status(400).send();
+        }
+
+        const userId = isConfirmToken.dataValues.userId;
+
+        await updateUserPassword(userId, req.body.newPassword);
+
+        res.status(200).send();
+    });
 
     router.put('/refresh/tokens', async (req, res) => {
         const token = req.body.refreshToken;
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
-        console.log('tokens validation', isValid);
 
         if (isValid.exp < 10) {
             return res.status(403).send();
@@ -104,42 +204,6 @@ module.exports = () => {
         const tokens = {
             accessToken,
             refreshToken
-        }
-
-        res.status(200).send(tokens);
-    });
-
-
-
-    router.post('/login', [
-        check('email').normalizeEmail().isEmail(),
-        check('password', 'Enter a password with five or more characters').isLength({min: 5})
-    ], async (req, res) => {
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(401).json({errors: errors.array()});
-        }
-
-        const {email, password} = req.body;
-        const appuserObject = await getUserByEmail(email)
-
-        if(!appuserObject) {
-            return res.status(401).send();
-        }
-
-        const appuser = appuserObject.dataValues;
-
-        const isCorrectPassword = comparePassword(password, appuser.salt, appuser.password);
-        if (!isCorrectPassword) {
-            res.status(401).send();
-        }
-        const refreshToken = await createRefreshToken(appuser, '1d').catch(err => res.status(400).send());
-        const accessToken = await createAccessToken(appuser, '1h').catch(err => res.status(400).send());
-
-        const tokens = {
-            refreshToken: refreshToken.tokenname,
-            accessToken
         }
 
         res.status(200).send(tokens);
