@@ -36,7 +36,7 @@ module.exports = () => {
             return res.status(400).send();
         }
 
-        const useremail = 'valery.buka@itechart-group.com ';
+        const useremail = req.body.confirmation_email;
         await sendPasswordConfirmation(useremail).catch((err) => res.status(400).send());
 
         return res.status(200).send();

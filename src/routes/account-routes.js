@@ -1,5 +1,4 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import {
     addNewUser,
     getUserByEmail,
@@ -14,7 +13,8 @@ import {
     updateRefreshToken,
     updateAccessToken,
     getRefreshToken,
-    getVerificationToken
+    getVerificationToken,
+    verifyToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
@@ -49,7 +49,7 @@ module.exports = () => {
             verificationToken
         }
 
-        const useremail = 'valery.buka@itechart-group.com ';
+        const useremail = req.body.confirmation_email;
 
         await sendUserConfirmation(useremail).catch(err => res.status(400).send(503));
 
@@ -77,13 +77,8 @@ module.exports = () => {
 
     router.put('/refresh/tokens', async (req, res) => {
         const token = req.body.refreshToken;
-        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if (err) {
-                return res.status(403).send();
-            } else {
-                return true
-            }
-        });
+        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
+        console.log('tokens validation', isValid);
 
         if (isValid.exp < 10) {
             return res.status(403).send();
@@ -96,7 +91,12 @@ module.exports = () => {
         }
 
         const userId = refreshTokenObject.dataValues.userId;
-        const userObject = await getUserWithID(userId).catch(err => res.status(404).send());
+        const userObject = await getUserWithID(userId);
+
+        if(!userObject) {
+            return res.status(404).send();
+        }
+
         const user = userObject.dataValues;
         const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(400).send());
         const accessToken = await updateAccessToken(user, req.headers.authorization, '1h').catch(err => res.status(400).send());
@@ -118,14 +118,14 @@ module.exports = () => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
+            return res.status(401).json({errors: errors.array()});
         }
 
         const {email, password} = req.body;
-        const appuserObject = await getUserByEmail(email).catch(err => res.status(400).send());
+        const appuserObject = await getUserByEmail(email)
 
         if(!appuserObject) {
-            return res.status(400).send();
+            return res.status(401).send();
         }
 
         const appuser = appuserObject.dataValues;

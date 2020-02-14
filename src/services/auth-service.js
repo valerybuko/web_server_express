@@ -67,3 +67,11 @@ export const updateAccessToken = async (user, oldToken, tokentimelife) => {
     await redis.lpush(user.id, token);
     return token;
 }
+
+export const verifyToken = (token, REFRESH_TOKEN_SECRET) => jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
+    if (err) {
+        return res.status(403).send();
+    } else {
+        return true
+    }
+});
