@@ -53,7 +53,7 @@ module.exports = () => {
 
         await sendUserConfirmation(useremail).catch(err => res.status(400).send(503));
 
-        res.send(createUserSuccessfulParams);
+        res.status(200).send(createUserSuccessfulParams);
     });
 
     router.post('/confirm', async (req, res) => {
@@ -70,7 +70,7 @@ module.exports = () => {
 
         await confirmUser(userId).catch(err => res.status(400).send());
 
-        res.send();
+        res.status(200).send();
     });
 
 
@@ -142,7 +142,7 @@ module.exports = () => {
             accessToken
         }
 
-        res.send(tokens);
+        res.status(200).send(tokens);
     });
 
     return router;
