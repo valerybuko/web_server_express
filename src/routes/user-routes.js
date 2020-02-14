@@ -39,7 +39,7 @@ module.exports = () => {
         const useremail = 'valery.buka@itechart-group.com ';
         await sendPasswordConfirmation(useremail).catch((err) => res.status(400).send());
 
-        return res.send();
+        return res.status(200).send();
     });
 
     router.put('/updatepass', [
@@ -75,21 +75,36 @@ module.exports = () => {
 
         await updateUserPassword(userId, req.body.newPassword);
 
-        res.send();
+        res.status(200).send();
     });
     router.get('/users', async (req, res) => {
         const allUsers = await getAllUsers().catch(err => res.status(400).send());
-        return res.send(allUsers);
+
+        if (!allUsers.length) {
+             return res.status(404).send();
+        }
+
+        return res.status(200).send(allUsers);
     });
 
     router.get('/user', async (req, res) => {
         const user = await getUserWithID(req.query.id).catch(err => res.status(400).send());
-        return res.send(user);
+
+        if(!user) {
+            return res.status(404).send();
+        }
+
+        return res.status(200).send(user);
     });
 
     router.get('/email', async (req, res) => {
         const user = await getUserByEmail(req.body.email).catch(err => res.status(400).send());
-        return res.send(user);
+
+        if(!user) {
+            return res.status(404).send();
+        }
+
+        return res.status(200).send(user);
     });
 
     router.put('/user', [
@@ -101,13 +116,13 @@ module.exports = () => {
             return res.status(400).json({errors: errors.array()});
         } else {
             const result = await updateUser(req.body).catch(err => console.log(err));
-            return res.send(result);
+            return res.status(201).send(result);
         }
     });
 
     router.delete('/user', async (req, res) => {
         await deleteUser(req.query.id).catch(err => res.send(400));
-        return res.send();
+        return res.status(200).send();
     });
 
     return router;
