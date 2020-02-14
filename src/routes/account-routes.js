@@ -19,7 +19,6 @@ import {
 
 import { comparePassword } from "../passwordHelper";
 import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
-import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
@@ -43,7 +42,7 @@ module.exports = () => {
         }
 
         const newUser = await addNewUser(req.body).catch(err => res.status(400).send());
-        const verificationToken = await createVerificationToken(newUser, '1d').catch(err => res.status(400).send());
+        const verificationToken = await createVerificationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
 
         const createUserSuccessfulParams = {
             newUser,
@@ -59,7 +58,7 @@ module.exports = () => {
 
     router.post('/confirm', async (req, res) => {
 
-        const token = req.body.token;
+        const token = req.body.verificationToken;
 
         const userObject = await getVerificationToken(token).catch(err => res.status(403).send());
 
@@ -102,8 +101,8 @@ module.exports = () => {
         if (!isCorrectPassword) {
             res.status(401).send();
         }
-        const refreshToken = await createRefreshToken(appuser, '1d').catch(err => res.status(400).send());
-        const accessToken = await createAccessToken(appuser, '1h').catch(err => res.status(400).send());
+        const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`).catch(err => res.status(400).send());
+        const accessToken = await createAccessToken(appuser, `${process.env.JWT_ACCESS_LIFETIME}`).catch(err => res.status(400).send());
 
         const tokens = {
             refreshToken: refreshToken.tokenname,
@@ -116,13 +115,7 @@ module.exports = () => {
     router.post('/changepass', async (req, res) => {
         const token = req.body.verificationToken;
 
-        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if (err) {
-                return res.status(403).send();
-            } else {
-                return true
-            }
-        });
+        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (isValid.exp < 10) {
             res.status(403).send();
@@ -151,13 +144,7 @@ module.exports = () => {
 
         const token = req.body.verificationToken;
 
-        const isValid = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if (err) {
-                return res.status(403).send();
-            } else {
-                return true
-            }
-        });
+        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (isValid.exp < 10) {
             res.status(403).send();

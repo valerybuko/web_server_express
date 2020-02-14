@@ -1,18 +1,14 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import {
     deleteUser,
     getAllUsers,
     getUserByEmail,
     getUserWithID,
-    updateUser,
-    updateUserPassword
+    updateUser
 } from "../services/user-service";
-import { getVerificationToken, REFRESH_TOKEN_SECRET } from "../services/auth-service";
-import { sendPasswordConfirmation } from "../services/mailer-service";
 
 const router = express.Router();
-const {check, validationResult} = require('express-validator/check');
+const { check, validationResult } = require('express-validator/check');
 
 module.exports = () => {
     router.get('/users', async (req, res) => {

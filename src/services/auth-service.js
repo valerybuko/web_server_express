@@ -21,12 +21,14 @@ export const createRefreshToken = async (user, tokentimelife) => {
 }
 
 export const updateRefreshToken = async (user, refToken) => {
-    const token = await generateJWT(user, '1d');
+    const token = await generateJWT(user, `${process.env.JWT_REFRESH_LIFETIME}`);
+
     await UsersSessions.update({ tokenname: token, userId: user.id }, {
         where: {
             tokenname: refToken
         }
-    })
+    });
+
     return token;
 }
 

@@ -2,10 +2,10 @@ import nodemailer from 'nodemailer';
 
 const createTransport = async () => {
     return nodemailer.createTransport({
-        service: "Gmail",
+        service: `${process.env.MAIL_SERVICE}`,
         auth: {
-            user: 'itechartgroup.valerybuko@gmail.com',
-            pass: 'ItechArt20?'
+            user: `${process.env.COMPANY_EMAIL}`,
+            pass: `${process.env.COMPANY_PASSWORD}`
         }
     });
 }
