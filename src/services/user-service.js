@@ -12,7 +12,7 @@ export const addNewUser = (user) => {
 
 export const createVerificationToken = async (user, tokentimelife) => {
     const token = await generateVerificationToken(user, tokentimelife);
-    return VerificationTokens.create({tokenname: token, userId: user.id});
+    return VerificationTokens.create({confirm_token: token, userId: user.id});
 }
 
 export const getAllUsers = () => {

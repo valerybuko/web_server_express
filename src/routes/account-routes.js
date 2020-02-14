@@ -14,11 +14,13 @@ import {
     updateAccessToken,
     getRefreshToken,
     getVerificationToken,
-    verifyToken, deleteVerificationToken
+    verifyToken,
+    deleteVerificationToken, createChangePasswordToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
 import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
+import sequelize from "../dal";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
@@ -42,6 +44,7 @@ module.exports = () => {
         }
 
         const newUser = await addNewUser(req.body).catch(err => res.status(400).send());
+
         const verificationToken = await createVerificationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
 
         const createUserSuccessfulParams = {
@@ -51,7 +54,7 @@ module.exports = () => {
 
         const useremail = req.body.confirmation_email;
 
-        await sendUserConfirmation(useremail).catch(err => res.status(400).send(503));
+        await sendUserConfirmation(useremail).catch(err => res.status(400).send());
 
         res.status(200).send(createUserSuccessfulParams);
     });
@@ -70,7 +73,7 @@ module.exports = () => {
 
         await confirmUser(userId).catch(err => res.status(400).send());
 
-        await deleteVerificationToken(userId).catch(err => res.status(400).send());
+        await deleteVerificationToken(token).catch(err => res.status(400).send());
 
         res.status(200).send();
     });
@@ -115,24 +118,33 @@ module.exports = () => {
     });
 
     router.post('/changepass', async (req, res) => {
-        const token = req.body.verificationToken;
+        const email = req.body.user_email;
+        const confirmationEmail = req.body.confirmation_email;
+        const userObject = await getUserByEmail(email);
 
-        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
-
-        if (isValid.exp < 10) {
-            res.status(403).send();
+        if(!userObject) {
+            return res.status(404).send();
         }
 
-        const isConfirmToken = await getVerificationToken(token);
+        const user = userObject.dataValues;
+        const userId = user.id;
 
-        if (!isConfirmToken) {
-            return res.status(400).send();
+        if (!user.isConfirm) {
+            return res.status(401).send();
         }
 
-        const useremail = req.body.confirmation_email;
-        await sendPasswordConfirmation(useremail).catch((err) => res.status(400).send());
+        const verificationToken = await createVerificationToken(user, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
+        const token = verificationToken.dataValues.confirm_token;
 
-        return res.status(200).send();
+        const newtoken = await createChangePasswordToken(userId, token);
+
+        if (!newtoken) {
+            return res.status(403).send();
+        }
+
+        await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
+
+        return res.status(200).send(verificationToken);
     });
 
     router.put('/updatepass', [
@@ -144,7 +156,7 @@ module.exports = () => {
             return res.status(400).json({errors: errors.array()});
         }
 
-        const token = req.body.verificationToken;
+        //const token = req.body.verificationToken;
 
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 

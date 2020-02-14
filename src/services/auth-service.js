@@ -15,10 +15,10 @@ export const generateVerificationToken = (user, tokentimelife) => {
     return jwt.sign({user: tokenData}, REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
 }
 
-export const deleteVerificationToken = (id) => {
+export const deleteVerificationToken = (token) => {
     return VerificationTokens.destroy({
         where: {
-            id
+            confirm_token: token
         }
     })
 }
@@ -40,6 +40,10 @@ export const updateRefreshToken = async (user, refToken) => {
     return token;
 }
 
+export const createChangePasswordToken = async (id, token) => {
+    return  VerificationTokens.create({ changepass_token: token, userId: id });
+}
+
 export const getRefreshToken = async (token) => {
     const refreshToken = await UsersSessions.findOne({
         where: {
@@ -52,7 +56,7 @@ export const getRefreshToken = async (token) => {
 export const getVerificationToken = async (token) => {
     const verificationToken = await VerificationTokens.findOne({
         where: {
-            tokenname: token
+            confirm_token: token
         }
     });
     return verificationToken;
