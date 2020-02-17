@@ -3,8 +3,9 @@ import {
     addNewUser,
     getUserByEmail,
     getUserWithID,
-    createVerificationToken,
-    confirmUser, updateUserPassword,
+    confirmUser,
+    updateUserPassword,
+    createConfirmationToken
 } from "../services/user-service";
 import {
     createRefreshToken,
@@ -13,14 +14,14 @@ import {
     updateRefreshToken,
     updateAccessToken,
     getRefreshToken,
-    getVerificationToken,
     verifyToken,
-    deleteVerificationToken, createChangePasswordToken
+    createChangePasswordToken,
+    getConfirmationToken,
+    deleteConfirmationToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
 import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
-import sequelize from "../dal";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
@@ -45,25 +46,25 @@ module.exports = () => {
 
         const newUser = await addNewUser(req.body).catch(err => res.status(400).send());
 
-        const verificationToken = await createVerificationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
+        const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
 
         const createUserSuccessfulParams = {
             newUser,
-            verificationToken
+            confirmationToken
         }
 
         const useremail = req.body.confirmation_email;
 
-        await sendUserConfirmation(useremail).catch(err => res.status(400).send());
+        //await sendUserConfirmation(useremail).catch(err => res.status(400).send());
 
         res.status(200).send(createUserSuccessfulParams);
     });
 
     router.post('/confirm', async (req, res) => {
 
-        const token = req.body.verificationToken;
+        const token = req.body.confirmationToken;
 
-        const userObject = await getVerificationToken(token).catch(err => res.status(403).send());
+        const userObject = await getConfirmationToken(token).catch(err => res.status(403).send());
 
         if (!userObject) {
             return res.status(403).send();
@@ -73,7 +74,7 @@ module.exports = () => {
 
         await confirmUser(userId).catch(err => res.status(400).send());
 
-        await deleteVerificationToken(token).catch(err => res.status(400).send());
+        await deleteConfirmationToken(token).catch(err => res.status(400).send());
 
         res.status(200).send();
     });

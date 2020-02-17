@@ -3,7 +3,7 @@ import boom from 'express-boom';
 import bodyParser from 'body-parser';
 import Users from "./src/sequelize/UsersModel";
 import UsersSessions from "./src/sequelize/UsersSessionsModel";
-import VerificationTokens from "./src/sequelize/VerificationTokensModel";
+import ConfirmationTokens from "./src/sequelize/ConfirmationTokensModel";
 import sequelize from "./src/dal";
 import router from "./src/routes";
 
@@ -11,7 +11,7 @@ const app = express();
 const PORT = 8000;
 
 Users.hasMany(UsersSessions, { onDelete: "cascade" } );
-Users.hasOne(VerificationTokens, {onDelete: "cascade"});
+Users.hasOne(ConfirmationTokens, {onDelete: "cascade"});
 
 sequelize.sync({ force: true })
     .then(res => console.log('Connection to the database has been successful'))

@@ -1,7 +1,7 @@
 import UsersSessions from "../sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
 import redis from "../dal/redis";
-import VerificationTokens from "../sequelize/VerificationTokensModel";
+import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
@@ -10,13 +10,13 @@ export const generateJWT = (user, tokentimelife) => {
     return jwt.sign({user: tokenData}, REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
 }
 
-export const generateVerificationToken = (user, tokentimelife) => {
+export const generateConfirmationToken = (user, tokentimelife) => {
     const tokenData = {username: user.username, id: user.id};
     return jwt.sign({user: tokenData}, REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
 }
 
-export const deleteVerificationToken = (token) => {
-    return VerificationTokens.destroy({
+export const deleteConfirmationToken = (token) => {
+    return ConfirmationTokens.destroy({
         where: {
             confirm_token: token
         }
@@ -53,13 +53,13 @@ export const getRefreshToken = async (token) => {
     return refreshToken;
 }
 
-export const getVerificationToken = async (token) => {
-    const verificationToken = await VerificationTokens.findOne({
+export const getConfirmationToken = async (token) => {
+    const confirmationToken = await ConfirmationTokens.findOne({
         where: {
-            confirm_token: token
+            confirmation_token: token
         }
     });
-    return verificationToken;
+    return confirmationToken;
 }
 
 const recodeHashToRedis = async (redis, user, token) => {

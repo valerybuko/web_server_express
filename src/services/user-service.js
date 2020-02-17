@@ -1,7 +1,7 @@
 import { generateHash, generateSalt } from "../passwordHelper";
 import Users from "../sequelize/UsersModel";
-import VerificationTokens from "../sequelize/VerificationTokensModel";
-import { generateVerificationToken } from "./auth-service";
+import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
+import { generateConfirmationToken } from "./auth-service";
 
 export const addNewUser = (user) => {
     const salt = generateSalt();
@@ -10,9 +10,9 @@ export const addNewUser = (user) => {
     return Users.create({ username, email, password, salt, role, city, birthdate })
 }
 
-export const createVerificationToken = async (user, tokentimelife) => {
-    const token = await generateVerificationToken(user, tokentimelife);
-    return VerificationTokens.create({confirm_token: token, userId: user.id});
+export const createConfirmationToken = async (user, tokentimelife) => {
+    const token = await generateConfirmationToken(user, tokentimelife);
+    return ConfirmationTokens.create({confirm_token: token, userId: user.id});
 }
 
 export const getAllUsers = () => {
