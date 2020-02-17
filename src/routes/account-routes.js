@@ -18,7 +18,8 @@ import {
     getConfirmationToken,
     deleteConfirmationToken,
     getChangePasswordToken,
-    createConfirmationToken
+    createConfirmationToken,
+    deleteChangePasswordToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
@@ -172,9 +173,11 @@ module.exports = () => {
             return res.status(400).send();
         }
 
-        //const userId = isConfirmToken.dataValues.userId;
+        const userId = isConfirmToken.dataValues.userId;
 
-        //await updateUserPassword(userId, req.body.newPassword);
+        await updateUserPassword(userId, req.body.newPassword);
+
+        deleteChangePasswordToken(token);
 
         res.status(200).send('Password has been updated');
     });

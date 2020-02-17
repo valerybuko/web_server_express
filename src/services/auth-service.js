@@ -24,6 +24,14 @@ export const deleteConfirmationToken = (token) => {
     })
 }
 
+export const deleteChangePasswordToken = (token) => {
+    return ChangePasswordTokens.destroy({
+        where: {
+            tokenname: token
+        }
+    })
+}
+
 export const createRefreshToken = async (user, tokentimelife) => {
     const token = await generateJWT(user, tokentimelife);
     return UsersSessions.create({tokenname: token, userId: user.id});
