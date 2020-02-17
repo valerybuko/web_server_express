@@ -10,11 +10,6 @@ export const addNewUser = (user) => {
     return Users.create({ username, email, password, salt, role, city, birthdate })
 }
 
-export const createConfirmationToken = async (user, tokentimelife) => {
-    const token = await generateConfirmationToken(user, tokentimelife);
-    return ConfirmationTokens.create({confirm_token: token, userId: user.id});
-}
-
 export const getAllUsers = () => {
     return Users.findAll({raw:true})
 }

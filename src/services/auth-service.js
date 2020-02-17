@@ -2,6 +2,7 @@ import UsersSessions from "../sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
 import redis from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
+import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
@@ -18,7 +19,7 @@ export const generateConfirmationToken = (user, tokentimelife) => {
 export const deleteConfirmationToken = (token) => {
     return ConfirmationTokens.destroy({
         where: {
-            confirm_token: token
+            tokenname: token
         }
     })
 }
@@ -40,8 +41,14 @@ export const updateRefreshToken = async (user, refToken) => {
     return token;
 }
 
-export const createChangePasswordToken = async (id, token) => {
-    return  VerificationTokens.create({ changepass_token: token, userId: id });
+export const createConfirmationToken = async (user, tokentimelife) => {
+    const token = await generateConfirmationToken(user, tokentimelife);
+    return ConfirmationTokens.create({ tokenname: token, userId: user.id});
+}
+
+export const createChangePasswordToken = async (user, tokentimelife) => {
+    const token = await generateConfirmationToken(user, tokentimelife);
+    return  ChangePasswordTokens.create({ tokenname: token, userId: user.id });
 }
 
 export const getRefreshToken = async (token) => {
@@ -56,10 +63,19 @@ export const getRefreshToken = async (token) => {
 export const getConfirmationToken = async (token) => {
     const confirmationToken = await ConfirmationTokens.findOne({
         where: {
-            confirmation_token: token
+            tokenname: token
         }
     });
     return confirmationToken;
+}
+
+export const getChangePasswordToken = async (token) => {
+    const changePasswordToken = await ChangePasswordTokens.findOne({
+        where: {
+            tokenname: token
+        }
+    });
+    return changePasswordToken;
 }
 
 const recodeHashToRedis = async (redis, user, token) => {
@@ -75,7 +91,7 @@ export const createAccessToken = async (user, tokentimelife) => {
 export const updateAccessToken = async (user, oldToken, tokentimelife) => {
     const deletedToken = await redis.lrem(`${user.id}`, 0, oldToken);
     if(!deletedToken) {
-        return res.status(400).send();
+        return false
     }
     const token = await generateJWT(user, tokentimelife);
     await redis.lpush(user.id, token);
@@ -84,7 +100,7 @@ export const updateAccessToken = async (user, oldToken, tokentimelife) => {
 
 export const verifyToken = (token, REFRESH_TOKEN_SECRET) => jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
     if (err) {
-        return res.status(403).send();
+        return err
     } else {
         return true
     }

@@ -4,8 +4,7 @@ import {
     getUserByEmail,
     getUserWithID,
     confirmUser,
-    updateUserPassword,
-    createConfirmationToken
+    updateUserPassword
 } from "../services/user-service";
 import {
     createRefreshToken,
@@ -17,7 +16,9 @@ import {
     verifyToken,
     createChangePasswordToken,
     getConfirmationToken,
-    deleteConfirmationToken
+    deleteConfirmationToken,
+    getChangePasswordToken,
+    createConfirmationToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
@@ -63,10 +64,9 @@ module.exports = () => {
     router.post('/confirm', async (req, res) => {
 
         const token = req.body.confirmationToken;
+        const userObject = await getConfirmationToken(token);
 
-        const userObject = await getConfirmationToken(token).catch(err => res.status(403).send());
-
-        if (!userObject) {
+        if(!userObject) {
             return res.status(403).send();
         }
 
@@ -128,24 +128,26 @@ module.exports = () => {
         }
 
         const user = userObject.dataValues;
-        const userId = user.id;
 
         if (!user.isConfirm) {
             return res.status(401).send();
         }
 
-        const verificationToken = await createVerificationToken(user, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
-        const token = verificationToken.dataValues.confirm_token;
+        const changePasswordTokenObject = await createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
+        const token = changePasswordTokenObject.dataValues.tokenname;
 
-        const newtoken = await createChangePasswordToken(userId, token);
 
-        if (!newtoken) {
+        if (!token) {
             return res.status(403).send();
         }
 
-        await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
+        const newtoken = {
+            changePasswordToken: token
+        }
 
-        return res.status(200).send(verificationToken);
+        //await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
+
+        res.status(200).send(newtoken);
     });
 
     router.put('/updatepass', [
@@ -157,25 +159,24 @@ module.exports = () => {
             return res.status(400).json({errors: errors.array()});
         }
 
-        //const token = req.body.verificationToken;
-
+        const token = req.body.changePasswordToken;
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (isValid.exp < 10) {
-            res.status(403).send();
+            return res.status(403).send();
         }
 
-        const isConfirmToken = await getVerificationToken(token);
+        const isConfirmToken = await getChangePasswordToken(token);
 
-        if (!isConfirmToken) {
+        if(!isConfirmToken) {
             return res.status(400).send();
         }
 
-        const userId = isConfirmToken.dataValues.userId;
+        //const userId = isConfirmToken.dataValues.userId;
 
-        await updateUserPassword(userId, req.body.newPassword);
+        //await updateUserPassword(userId, req.body.newPassword);
 
-        res.status(200).send();
+        res.status(200).send('Password has been updated');
     });
 
     router.put('/refresh/tokens', async (req, res) => {
