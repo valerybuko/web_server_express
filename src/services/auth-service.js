@@ -1,6 +1,6 @@
 import UsersSessions from "../sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
-import redis from "../dal/redis";
+import client from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
 
@@ -86,23 +86,23 @@ export const getChangePasswordToken = async (token) => {
     return changePasswordToken;
 }
 
-const recodeHashToRedis = async (redis, user, token) => {
-    redis.lpush(user.id, token);
+const recodeHashToRedis = async (client, user, index, token) => {
+    await client.zadd(`user${user.id}`, `${index}`, token);
 }
 
-export const createAccessToken = async (user, tokentimelife) => {
+export const createAccessToken = async (user, tokentimelife, index) => {
     const token = await generateJWT(user, tokentimelife);
-    await recodeHashToRedis(redis, user, token);
+    await recodeHashToRedis(client, user, index, token);
     return token;
 }
 
 export const updateAccessToken = async (user, oldToken, tokentimelife) => {
-    const deletedToken = await redis.lrem(`${user.id}`, 0, oldToken);
+    const deletedToken = await client.zrem(`user${user.id}`, oldToken);
     if(!deletedToken) {
         return false
     }
     const token = await generateJWT(user, tokentimelife);
-    await redis.lpush(user.id, token);
+    //await recodeHashToRedis(client, user, user.id, token);
     return token;
 }
 

@@ -57,7 +57,7 @@ module.exports = () => {
 
         const useremail = req.body.confirmation_email;
 
-        await sendUserConfirmation(useremail).catch(err => res.status(400).send());
+        //await sendUserConfirmation(useremail).catch(err => res.status(400).send());
 
         res.status(200).send(createUserSuccessfulParams);
     });
@@ -115,7 +115,9 @@ module.exports = () => {
             res.status(401).send();
         }
         const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`).catch(err => res.status(400).send());
-        const accessToken = await createAccessToken(appuser, `${process.env.JWT_ACCESS_LIFETIME}`).catch(err => res.status(400).send());
+        const index = refreshToken.dataValues.id;
+
+        const accessToken = await createAccessToken(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, index).catch(err => res.status(400).send());
 
         const tokens = {
             refreshToken: refreshToken.tokenname,
@@ -152,7 +154,7 @@ module.exports = () => {
             changePasswordToken: token
         }
 
-        await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
+        //await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
 
         res.status(200).send(newtoken);
     });
@@ -191,6 +193,8 @@ module.exports = () => {
 
     router.put('/refresh/tokens', async (req, res) => {
         const token = req.body.refreshToken;
+        const authorizationToken = req.headers.authorization;
+
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
