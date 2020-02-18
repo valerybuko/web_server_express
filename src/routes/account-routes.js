@@ -71,11 +71,17 @@ module.exports = () => {
             return res.status(403).send();
         }
 
+        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
+
+        if(!isValid) {
+            return res.status(403).send();
+        }
+
         const userId = userObject.dataValues.userId;
 
-        await confirmUser(userId).catch(err => res.status(400).send());
+        await confirmUser(userId);
 
-        await deleteConfirmationToken(token).catch(err => res.status(400).send());
+        await deleteConfirmationToken(token);
 
         res.status(200).send();
     });
@@ -161,9 +167,10 @@ module.exports = () => {
         }
 
         const token = req.body.changePasswordToken;
+
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
-        if (isValid.exp < 10) {
+        if (!isValid) {
             return res.status(403).send();
         }
 
@@ -186,7 +193,7 @@ module.exports = () => {
         const token = req.body.refreshToken;
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
-        if (isValid.exp < 10) {
+        if (!isValid) {
             return res.status(403).send();
         }
 
