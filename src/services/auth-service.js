@@ -96,13 +96,19 @@ export const createAccessToken = async (user, tokentimelife, index) => {
     return token;
 }
 
+export const getUserAccessTokens = (user) => {
+    const userAccessTokens = client.zrange(`user${user.id}`, '0', '-1');
+    return userAccessTokens;
+}
+
 export const updateAccessToken = async (user, oldToken, tokentimelife) => {
     const deletedToken = await client.zrem(`user${user.id}`, oldToken);
+    console.log('======== deleting token result', deletedToken);
     if(!deletedToken) {
         return false
     }
     const token = await generateJWT(user, tokentimelife);
-    //await recodeHashToRedis(client, user, user.id, token);
+    await recodeHashToRedis(client, user, user.id, token);
     return token;
 }
 
