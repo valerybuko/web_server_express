@@ -1,7 +1,5 @@
 import { generateHash, generateSalt } from "../passwordHelper";
 import Users from "../sequelize/UsersModel";
-import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
-import { generateConfirmationToken } from "./auth-service";
 
 export const addNewUser = (user) => {
     const salt = generateSalt();

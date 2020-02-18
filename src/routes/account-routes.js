@@ -57,7 +57,7 @@ module.exports = () => {
 
         const useremail = req.body.confirmation_email;
 
-        //await sendUserConfirmation(useremail).catch(err => res.status(400).send());
+        await sendUserConfirmation(useremail).catch(err => res.status(400).send());
 
         res.status(200).send(createUserSuccessfulParams);
     });
@@ -152,7 +152,7 @@ module.exports = () => {
             changePasswordToken: token
         }
 
-        //await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
+        await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
 
         res.status(200).send(newtoken);
     });
