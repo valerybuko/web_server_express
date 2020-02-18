@@ -19,7 +19,7 @@ import {
     deleteConfirmationToken,
     getChangePasswordToken,
     createConfirmationToken,
-    deleteChangePasswordToken, getUserAccessTokens
+    deleteChangePasswordToken
 } from "../services/auth-service";
 
 import { comparePassword } from "../passwordHelper";
@@ -201,7 +201,7 @@ module.exports = () => {
             return res.status(403).send();
         }
 
-        const refreshTokenObject = await getRefreshToken(req.body.refreshToken).catch(err => res.status(400).send());
+        const refreshTokenObject = await getRefreshToken(token);
 
         if (!refreshTokenObject) {
             return res.status(401).send();
@@ -218,9 +218,6 @@ module.exports = () => {
         const user = userObject.dataValues;
         const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(400).send());
         const accessToken = await updateAccessToken(user, req.headers.authorization, '1h').catch(err => res.status(400).send());
-
-        const a = getUserAccessTokens(user);
-        console.log('=============', a);
 
         const tokens = {
             accessToken,
