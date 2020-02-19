@@ -1,4 +1,5 @@
 import express from 'express';
+import HttpStatus from 'http-status-codes';
 import {
     addNewUser,
     getUserByEmail,
@@ -37,30 +38,34 @@ module.exports = () => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
+            return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
         }
 
-        const {email} = req.body;
+        const {username, email, salt, role, city, birthdate, confirmation_email} = req.body;
+
+        if(!username || !salt || !role || !city || !birthdate) {
+            return res.status(HttpStatus.BAD_REQUEST).send();
+        }
+
         let appuser = await getUserByEmail(email);
 
         if (appuser) {
-            res.status(409).send();
+            return res.status(HttpStatus.CONFLICT).send();
         }
 
-        const newUser = await addNewUser(req.body).catch(err => res.status(400).send());
+        const newUser = await addNewUser(req.body);
 
-        const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
+        const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
 
         const createUserSuccessfulParams = {
             newUser,
             confirmationToken
         }
 
-        const useremail = req.body.confirmation_email;
 
-        //await sendUserConfirmation(useremail).catch(err => res.status(400).send());
+        //await sendUserConfirmation(confirmation_email)
 
-        res.status(200).send(createUserSuccessfulParams);
+        res.status(HttpStatus.OK).send(createUserSuccessfulParams);
     });
 
     router.post('/confirm', async (req, res) => {
@@ -69,13 +74,13 @@ module.exports = () => {
         const userObject = await getConfirmationToken(token);
 
         if(!userObject) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if(!isValid) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const userId = userObject.dataValues.userId;
@@ -84,7 +89,7 @@ module.exports = () => {
 
         await deleteConfirmationToken(token);
 
-        res.status(200).send();
+        res.status(HttpStatus.OK).send();
     });
 
     router.post('/login', [
@@ -94,26 +99,26 @@ module.exports = () => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(401).json({errors: errors.array()});
+            return res.status(HttpStatus.UNAUTHORIZED).json({errors: errors.array()});
         }
 
         const {email, password} = req.body;
         const appuserObject = await getUserByEmail(email);
 
         if(!appuserObject) {
-            return res.status(401).send();
+            return res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
         const appuser = appuserObject.dataValues;
         const isUserConfirm = appuser.isConfirm;
 
         if(!isUserConfirm) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const isCorrectPassword = comparePassword(password, appuser.salt, appuser.password);
         if (!isCorrectPassword) {
-            res.status(401).send();
+            res.status(HttpStatus.UNAUTHORIZED).send();
         }
         const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`).catch(err => res.status(400).send());
         const index = refreshToken.dataValues.id;
@@ -125,7 +130,7 @@ module.exports = () => {
             accessToken
         }
 
-        res.status(200).send(tokens);
+        res.status(HttpStatus.OK).send(tokens);
     });
 
     router.post('/changepass', [
@@ -135,7 +140,7 @@ module.exports = () => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
+            return res.status(HttpStatus.OK).json({errors: errors.array()});
         }
 
         const email = req.body.user_email;
@@ -143,13 +148,13 @@ module.exports = () => {
         const userObject = await getUserByEmail(email);
 
         if(!userObject) {
-            return res.status(404).send();
+            return res.status(HttpStatus.NOT_FOUND).send();
         }
 
         const user = userObject.dataValues;
 
         if (!user.isConfirm) {
-            return res.status(401).send();
+            return res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
         const changePasswordTokenObject = await createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`).catch(err => res.status(400).send());
@@ -157,7 +162,7 @@ module.exports = () => {
 
 
         if (!token) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const newtoken = {
@@ -166,7 +171,7 @@ module.exports = () => {
 
         //await sendPasswordConfirmation(confirmationEmail).catch((err) => res.status(400).send());
 
-        res.status(200).send(newtoken);
+        res.status(HttpStatus.OK).send(newtoken);
     });
 
     router.put('/updatepass', [
@@ -175,7 +180,7 @@ module.exports = () => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({errors: errors.array()});
+            return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
         }
 
         const token = req.body.changePasswordToken;
@@ -183,13 +188,13 @@ module.exports = () => {
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const isConfirmToken = await getChangePasswordToken(token);
 
         if(!isConfirmToken) {
-            return res.status(400).send();
+            return res.status(HttpStatus.BAD_REQUEST).send();
         }
 
         const userId = isConfirmToken.dataValues.userId;
@@ -198,7 +203,7 @@ module.exports = () => {
 
         deleteChangePasswordToken(token);
 
-        res.status(200).send('Password has been updated');
+        res.status(HttpStatus.OK).send('Password has been updated');
     });
 
     router.put('/refresh/tokens', async (req, res) => {
@@ -208,33 +213,34 @@ module.exports = () => {
         const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
-            return res.status(403).send();
+            return res.status(HttpStatus.FORBIDDEN).send();
         }
 
         const refreshTokenObject = await getRefreshToken(token);
 
         if (!refreshTokenObject) {
-            return res.status(401).send();
+            return res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
         const userId = refreshTokenObject.dataValues.userId;
         const userObject = await getUserWithID(userId);
 
         if(!userObject) {
-            return res.status(404).send();
+            return res.status(HttpStatus.NOT_FOUND).send();
         }
 
 
         const user = userObject.dataValues;
-        const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(400).send());
-        const accessToken = await updateAccessToken(user, req.headers.authorization, '1h').catch(err => res.status(400).send());
+        const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(HttpStatus.BAD_REQUEST).send());
+        console.log('===========', refreshToken);
+        const accessToken = await updateAccessToken(user, req.headers.authorization, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
 
         const tokens = {
             accessToken,
             refreshToken
         }
 
-        res.status(200).send(tokens);
+        res.status(HttpStatus.OK).send(tokens);
     });
 
     return router;
