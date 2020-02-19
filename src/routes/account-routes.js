@@ -31,6 +31,7 @@ const { check, validationResult } = require('express-validator/check');
 module.exports = () => {
     router.post('/create-user', [
         check('email').normalizeEmail().isEmail(),
+        check('confirmation_email').normalizeEmail().isEmail(),
         check('password', 'Enter a password with five or more characters').isLength({min: 5})
     ], async (req, res) => {
         const errors = validationResult(req);
@@ -87,7 +88,7 @@ module.exports = () => {
     });
 
     router.post('/login', [
-        check('email').normalizeEmail().isEmail(),
+        check('email', 'Wrong email address').normalizeEmail().isEmail(),
         check('password', 'Enter a password with five or more characters').isLength({min: 5})
     ], async (req, res) => {
         const errors = validationResult(req);
@@ -127,7 +128,16 @@ module.exports = () => {
         res.status(200).send(tokens);
     });
 
-    router.post('/changepass', async (req, res) => {
+    router.post('/changepass', [
+        check('user_email', 'Wrong email address').normalizeEmail().isEmail(),
+        check('confirmation_email', 'Wrong email address').normalizeEmail().isEmail()
+    ], async (req, res) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const email = req.body.user_email;
         const confirmationEmail = req.body.confirmation_email;
         const userObject = await getUserByEmail(email);
