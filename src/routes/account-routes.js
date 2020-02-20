@@ -46,6 +46,10 @@ module.exports = () => {
 
             const { userrole, username, email, salt, city, birthdate, confirmation_email } = req.body;
 
+            if (userrole !== 'user') {
+                return res.status(HttpStatus.FORBIDDEN).send();
+            }
+
             if (!username || !salt || !userrole || !city || !birthdate) {
                 return res.status(HttpStatus.BAD_REQUEST).send();
             }
