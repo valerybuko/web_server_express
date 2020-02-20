@@ -29,6 +29,10 @@ export const getUserWithID = (id) => {
     return Users.findByPk(id)
 }
 
+export const getRoleWithID = (id) => {
+    return UserRoles.findByPk(id)
+}
+
 export const confirmUser = (id) => {
     return Users.update({ isConfirm: true }, {
         where: {
@@ -73,4 +77,18 @@ export const getUserByEmail = (email) => {
             email
         }
     });
+}
+
+export const getUserRoleByUserId = (id) => {
+    return UserRoles.findOne({
+        where: {
+            userId: id
+        }
+    });
+}
+
+export const checkAdminUserRole = async (id) => {
+    const userRolesObject = await getUserRoleByUserId(id);
+    const userRole = userRolesObject.dataValues.role;
+    return userRole;
 }
