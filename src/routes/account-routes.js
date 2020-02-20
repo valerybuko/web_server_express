@@ -23,12 +23,12 @@ import {
     deleteChangePasswordToken
 } from "../services/auth-service";
 
-import {comparePassword} from "../passwordHelper";
-import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
+import { comparePassword } from "../passwordHelper";
+import { sendPasswordConfirmation, sendUserConfirmation } from "../services/mailer-service";
 import badRequestErrorHandler from "../errors/BadRequestErrorHandler";
 
 const router = express.Router();
-const {check, validationResult} = require('express-validator/check');
+const { check, validationResult } = require('express-validator/check');
 
 module.exports = () => {
     router.post('/create-user', [
@@ -37,10 +37,6 @@ module.exports = () => {
             check('password', 'Enter a password with five or more characters').isLength({min: 5})
         ],
         badRequestErrorHandler(async (req, res) => {
-            /*check('email').normalizeEmail().isEmail();
-            check('confirmation_email').normalizeEmail().isEmail();
-            check('password', 'Enter a password with five or more characters').isLength({min: 5});*/
-
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -53,7 +49,7 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
-            let appuser = await getUserByEmail(email);
+            const appuser = await getUserByEmail(email);
 
             if (appuser) {
                 return res.status(HttpStatus.CONFLICT).send();
@@ -195,7 +191,6 @@ module.exports = () => {
             }
 
             const token = req.body.changePasswordToken;
-
             const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
             if (!isValid) {
@@ -222,7 +217,6 @@ module.exports = () => {
         badRequestErrorHandler(async (req, res) => {
             const token = req.body.refreshToken;
             const authorizationToken = req.headers.authorization;
-
             const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
             if (!isValid) {
@@ -245,7 +239,7 @@ module.exports = () => {
 
             const user = userObject.dataValues;
             const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(HttpStatus.BAD_REQUEST).send());
-            const accessToken = await updateAccessToken(user, req.headers.authorization, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
+            const accessToken = await updateAccessToken(user, authorizationToken, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
             const tokens = {
                 accessToken,
                 refreshToken
