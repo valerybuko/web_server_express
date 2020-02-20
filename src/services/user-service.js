@@ -13,6 +13,14 @@ export const createUserRole = async (userrole, id) => {
     return UserRoles.create({role: userrole, userId: id});
 }
 
+export const changedUserRole = async (userrole, id) => {
+    return UserRoles.update({ role: userrole }, {
+        where: {
+            userId: id
+        }
+    });
+}
+
 export const getAllUsers = () => {
     return Users.findAll({raw:true})
 }

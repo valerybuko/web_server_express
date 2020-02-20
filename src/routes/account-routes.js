@@ -70,7 +70,7 @@ module.exports = () => {
             }
 
 
-            await sendUserConfirmation(confirmation_email)
+            //await sendUserConfirmation(confirmation_email)
 
             res.status(HttpStatus.OK).send(createUserSuccessfulParams);
         })

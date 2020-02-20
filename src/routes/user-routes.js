@@ -13,7 +13,8 @@ const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
 module.exports = () => {
-    router.get('/users', badRequestErrorHandler(async (req, res) => {
+    router.get('/users',
+        badRequestErrorHandler(async (req, res) => {
             const allUsers = await getAllUsers();
 
             if (!allUsers.length) {
@@ -24,7 +25,8 @@ module.exports = () => {
         })
     );
 
-    router.get('/user', badRequestErrorHandler(async (req, res) => {
+    router.get('/user',
+        badRequestErrorHandler(async (req, res) => {
             const user = await getUserWithID(req.query.id);
 
             if (!user) {
@@ -35,7 +37,8 @@ module.exports = () => {
         })
     );
 
-    router.get('/email', badRequestErrorHandler(async (req, res) => {
+    router.get('/email',
+        badRequestErrorHandler(async (req, res) => {
             const user = await getUserByEmail(req.body.email);
 
             if (!user) {

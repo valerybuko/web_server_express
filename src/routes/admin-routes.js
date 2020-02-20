@@ -1,35 +1,18 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
 import badRequestErrorHandler from "../errors/BadRequestErrorHandler";
+import { changedUserRole } from '../services/user-service';
 
 const router = express.Router();
-const { check, validationResult } = require('express-validator/check');
 
 module.exports = () => {
-    router.post('/change-user-role',
+    router.put('/change/userrole',
         badRequestErrorHandler(async (req, res) => {
-            const errors = validationResult(req);
+            const { userrole, id } = req.body;
 
-            if (!errors.isEmpty()) {
-                return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
-            }
+            await changedUserRole(userrole, id).catch(err => console.log(err));
 
-
-           /* const { userrole, username, email, salt, city, birthdate, confirmation_email } = req.body;
-
-            if (!username || !salt || !userrole || !city || !birthdate) {
-                return res.status(HttpStatus.BAD_REQUEST).send();
-            }
-
-            const appuser = await getUserByEmail(email);*/
-
-            if (appuser) {
-                return res.status(HttpStatus.CONFLICT).send();
-            }
-
-
-
-            res.status(HttpStatus.OK).send(createUserSuccessfulParams);
+            res.status(HttpStatus.OK).send();
         })
     );
 
