@@ -18,10 +18,6 @@ const UsersModel = sequelize.define('users', {
       type: Sequelize.STRING,
       allowNull: false
     },
-    role: {
-      type: Sequelize.STRING,
-      allowNull: false
-    },
     city: {
         type: Sequelize.STRING,
         allowNull: false

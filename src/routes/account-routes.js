@@ -2,6 +2,7 @@ import express from 'express';
 import HttpStatus from 'http-status-codes';
 import {
     addNewUser,
+    createUserRole,
     getUserByEmail,
     getUserWithID,
     confirmUser,
@@ -43,9 +44,9 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
             }
 
-            const {username, email, salt, role, city, birthdate, confirmation_email} = req.body;
+            const { userrole, username, email, salt, city, birthdate, confirmation_email } = req.body;
 
-            if (!username || !salt || !role || !city || !birthdate) {
+            if (!username || !salt || !userrole || !city || !birthdate) {
                 return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
@@ -56,9 +57,9 @@ module.exports = () => {
             }
 
             const newUser = await addNewUser(req.body);
-
+            const newUserId = newUser.dataValues.id;
+            const userRole = await createUserRole(userrole, newUserId);
             const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
-
             const createUserSuccessfulParams = {
                 newUser,
                 confirmationToken

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import client from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
+import UserRolesModel from "../sequelize/UserRolesModel";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 

@@ -1,11 +1,16 @@
 import { generateHash, generateSalt } from "../passwordHelper";
 import Users from "../sequelize/UsersModel";
+import UserRoles from "../sequelize/UserRolesModel";
 
 export const addNewUser = (user) => {
     const salt = generateSalt();
     const password = generateHash(user.password, salt);
-    const {username, email, role, city, birthdate} = user;
-    return Users.create({ username, email, password, salt, role, city, birthdate })
+    const {username, email, city, birthdate} = user;
+    return Users.create({ username, email, password, salt, city, birthdate })
+}
+
+export const createUserRole = async (userrole, id) => {
+    return UserRoles.create({role: userrole, userId: id});
 }
 
 export const getAllUsers = () => {

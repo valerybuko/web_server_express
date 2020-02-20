@@ -2,6 +2,7 @@ import express from 'express';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
 import Users from "./src/sequelize/UsersModel";
+import UserRoles from "./src/sequelize/UserRolesModel";
 import UsersSessions from "./src/sequelize/UsersSessionsModel";
 import ConfirmationTokens from "./src/sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "./src/sequelize/ChangePasswordTokensModel";
@@ -14,6 +15,7 @@ const PORT = 8000;
 Users.hasMany(UsersSessions, { onDelete: "cascade" } );
 Users.hasOne(ConfirmationTokens, { onDelete: "cascade" });
 Users.hasOne(ChangePasswordTokens, { onDelete: "cascade" });
+Users.hasOne(UserRoles, { onDelete: "cascade" });
 
 sequelize.sync({ force: true })
     .then(res => console.log('Connection to the database has been successful'))
