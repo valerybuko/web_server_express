@@ -1,6 +1,7 @@
 import express from 'express';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
 import Users from "./src/sequelize/UsersModel";
 import UserRoles from "./src/sequelize/UserRolesModel";
 import UsersSessions from "./src/sequelize/UsersSessionsModel";
@@ -11,6 +12,12 @@ import router from "./src/routes";
 
 const app = express();
 const PORT = 8000;
+
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://localhost/Development', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 Users.hasMany(UsersSessions, { onDelete: "cascade" } );
 Users.hasOne(ConfirmationTokens, { onDelete: "cascade" });
