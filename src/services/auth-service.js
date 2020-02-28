@@ -1,9 +1,8 @@
 import UsersSessions from "../sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
-import client from "../dal/redis";
+import redisClient from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
-import UserRolesModel from "../sequelize/UserRolesModel";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
@@ -87,23 +86,45 @@ export const getChangePasswordToken = async (token) => {
     return changePasswordToken;
 }
 
-const recodeHashToRedis = async (client, user, index, token) => {
-    await client.zadd(`user${user.id}`, `${index}`, token);
+const recodeHashToRedis = async (redisClient, user, index, token) => {
+    await redisClient.zadd(`user${user.id}`, `${index}`, token);
 }
 
-export const createAccessToken = async (user, tokentimelife, index) => {
+export const saveSessionToRedis = async (user, tokentimelife, index) => {
     const token = await generateJWT(user, tokentimelife);
-    await recodeHashToRedis(client, user, index, token);
+    await recodeHashToRedis(redisClient, user, index, token);
     return token;
 }
 
+export const checkCorrectAccessToken = async (userId, token) => {
+    const tokenFromCLientSide = token;
+    const array = [];
+    const zrange = (id, start, end) => new Promise((resolve, reject) => {
+        redisClient.zrange(id, start, end, (err, value) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(value);
+            }
+
+        });
+    });
+    const tokensArray = await zrange(`user${userId}`, 0, -1);
+    console.log('Array result', tokensArray);
+    if (!tokensArray.includes(tokenFromCLientSide)) {
+        return false
+    } else {
+        return true
+    }
+}
+
 export const updateAccessToken = async (user, oldToken, tokentimelife) => {
-    const deletedToken = await client.zrem(`user${user.id}`, oldToken);
+    const deletedToken = await redisClient.zrem(`user${user.id}`, oldToken);
     if(!deletedToken) {
         return false
     }
     const token = await generateJWT(user, tokentimelife);
-    await recodeHashToRedis(client, user, user.id, token);
+    await recodeHashToRedis(redisClient, user, user.id, token);
     return token;
 }
 

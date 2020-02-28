@@ -7,7 +7,9 @@ import {
     getUserWithID,
     updateUser
 } from "../services/user-service";
-import badRequestErrorHandler from '../errors/BadRequestErrorHandler';
+import badRequestErrorHandler from '../middleware/BadRequestErrorHandler';
+import authorize from '../middleware/Authorization';
+import { checkCorrectAccessToken } from "../services/auth-service";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -52,11 +54,20 @@ module.exports = () => {
     router.put('/user', [
             check('email').normalizeEmail().isEmail(),
             check('password', 'Enter a password with five or more characters').isLength({min: 5})
-        ], badRequestErrorHandler(async (req, res) => {
+        ],
+        authorize(),
+        badRequestErrorHandler(async (req, res) => {
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
+            }
+
+            const checking = await checkCorrectAccessToken(req.body.id, req.headers.authorization);
+            console.log('Checking', checking);
+
+            if(!checking) {
+                return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
             const result = await updateUser(req.body);

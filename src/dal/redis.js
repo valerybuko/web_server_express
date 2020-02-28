@@ -1,8 +1,8 @@
 const redis = require('redis');
-const client = redis.createClient();
+const redisClient = redis.createClient();
 
-client.on("error", (err) => {
+redisClient.on('error', (err) => {
     console.log(err);
 });
 
-export default client;
+export default redisClient;

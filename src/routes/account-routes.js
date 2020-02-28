@@ -10,7 +10,7 @@ import {
 } from "../services/user-service";
 import {
     createRefreshToken,
-    createAccessToken,
+    saveSessionToRedis,
     REFRESH_TOKEN_SECRET,
     updateRefreshToken,
     updateAccessToken,
@@ -26,7 +26,7 @@ import {
 
 import { comparePassword } from "../passwordHelper";
 import { sendPasswordConfirmation, sendUserConfirmation } from "../services/mailer-service";
-import badRequestErrorHandler from "../errors/BadRequestErrorHandler";
+import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
@@ -70,7 +70,7 @@ module.exports = () => {
             }
 
 
-            //await sendUserConfirmation(confirmation_email)
+            //await sendUserConfirmation(confirmation_email);
 
             res.status(HttpStatus.OK).send(createUserSuccessfulParams);
         })
@@ -132,8 +132,9 @@ module.exports = () => {
             }
 
             const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
-            const index = refreshToken.dataValues.id;
-            const accessToken = await createAccessToken(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, index);
+            const userId = refreshToken.dataValues.id;
+            const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userId);
+
 
             const tokens = {
                 refreshToken: refreshToken.tokenname,

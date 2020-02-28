@@ -1,6 +1,6 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
-import badRequestErrorHandler from "../errors/BadRequestErrorHandler";
+import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 import {changedUserRole, checkAdminUserRole } from '../services/user-service';
 import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../services/company-service';
 
