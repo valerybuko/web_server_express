@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import redisClient from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
+import {deleteUserSession} from "./user-service";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
@@ -133,3 +134,8 @@ export const verifyToken = (token, REFRESH_TOKEN_SECRET) => jwt.verify(token, RE
         return true
     }
 });
+
+export const deleteSession = async (userId, accessToken) => {
+    await deleteUserSession(userId);
+    await redisClient.zrem(`user${userId}`, accessToken);
+}

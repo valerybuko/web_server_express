@@ -9,7 +9,6 @@ import {
 } from "../services/user-service";
 import badRequestErrorHandler from '../middleware/BadRequestErrorHandler';
 import authorize from '../middleware/Authorization';
-import {checkCorrectAccessToken} from "../services/auth-service";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -55,7 +54,6 @@ module.exports = () => {
             check('email').normalizeEmail().isEmail(),
             check('password', 'Enter a password with five or more characters').isLength({min: 5})
         ],
-        authorize(),
         badRequestErrorHandler(async (req, res) => {
             const errors = validationResult(req);
 

@@ -21,15 +21,16 @@ import {
     deleteConfirmationToken,
     getChangePasswordToken,
     createConfirmationToken,
-    deleteChangePasswordToken
+    deleteChangePasswordToken, deleteSession
 } from "../services/auth-service";
 
-import { comparePassword } from "../passwordHelper";
-import { sendPasswordConfirmation, sendUserConfirmation } from "../services/mailer-service";
+import {comparePassword} from "../passwordHelper";
+import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
+import authorize from '../middleware/Authorization';
 
 const router = express.Router();
-const { check, validationResult } = require('express-validator/check');
+const {check, validationResult} = require('express-validator/check');
 
 module.exports = () => {
     router.post('/create-user', [
@@ -44,7 +45,7 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
             }
 
-            const { userrole, username, email, salt, city, birthdate, confirmation_email } = req.body;
+            const {userrole, username, email, salt, city, birthdate, confirmation_email} = req.body;
 
             if (userrole !== 'user') {
                 return res.status(HttpStatus.FORBIDDEN).send();
@@ -144,6 +145,12 @@ module.exports = () => {
             res.status(HttpStatus.OK).send(tokens);
         })
     );
+
+    router.post('/logout', badRequestErrorHandler(async (req, res) => {
+            await deleteSession(req.body.id, req.headers.authorization);
+            res.send();
+        })
+    )
 
     router.post('/changepass', [
             check('user_email', 'Wrong email address').normalizeEmail().isEmail(),

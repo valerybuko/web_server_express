@@ -1,6 +1,7 @@
 import { generateHash, generateSalt } from "../passwordHelper";
 import Users from "../sequelize/UsersModel";
 import UserRoles from "../sequelize/UserRolesModel";
+import UsersSessions from "../sequelize/UsersSessionsModel";
 
 export const addNewUser = (user) => {
     const salt = generateSalt();
@@ -67,6 +68,14 @@ export const deleteUser = (id) => {
     return Users.destroy({
         where: {
             id
+        }
+    })
+}
+
+export const deleteUserSession = (id) => {
+    return UsersSessions.destroy({
+        where: {
+            userId: id
         }
     })
 }
