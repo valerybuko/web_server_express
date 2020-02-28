@@ -97,8 +97,6 @@ export const saveSessionToRedis = async (user, tokentimelife, index) => {
 }
 
 export const checkCorrectAccessToken = async (userId, token) => {
-    const tokenFromCLientSide = token;
-    const array = [];
     const zrange = (id, start, end) => new Promise((resolve, reject) => {
         redisClient.zrange(id, start, end, (err, value) => {
             if (err) {
@@ -110,8 +108,8 @@ export const checkCorrectAccessToken = async (userId, token) => {
         });
     });
     const tokensArray = await zrange(`user${userId}`, 0, -1);
-    console.log('Array result', tokensArray);
-    if (!tokensArray.includes(tokenFromCLientSide)) {
+
+    if (!tokensArray.includes(token)) {
         return false
     } else {
         return true

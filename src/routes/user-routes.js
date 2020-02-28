@@ -9,7 +9,7 @@ import {
 } from "../services/user-service";
 import badRequestErrorHandler from '../middleware/BadRequestErrorHandler';
 import authorize from '../middleware/Authorization';
-import { checkCorrectAccessToken } from "../services/auth-service";
+import {checkCorrectAccessToken} from "../services/auth-service";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -61,13 +61,6 @@ module.exports = () => {
 
             if (!errors.isEmpty()) {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
-            }
-
-            const checking = await checkCorrectAccessToken(req.body.id, req.headers.authorization);
-            console.log('Checking', checking);
-
-            if(!checking) {
-                return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
             const result = await updateUser(req.body);
