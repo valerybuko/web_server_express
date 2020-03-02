@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import redisClient from "../dal/redis";
 import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
-import {deleteUserSession} from "./user-service";
+import { deleteUserSession } from "./user-service";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';
 
@@ -13,8 +13,11 @@ export const generateJWT = (user, tokentimelife) => {
 }
 
 export const generateConfirmationToken = (user, tokentimelife) => {
-    const tokenData = {username: user.username, id: user.id};
-    return jwt.sign({user: tokenData}, REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
+    console.log('Token timelife: ', tokentimelife);
+    const confirmationToken = generateJWT(user, tokentimelife);
+    console.log(jwt.decode(confirmationToken));
+
+    return confirmationToken;
 }
 
 export const deleteConfirmationToken = (token) => {
@@ -89,6 +92,7 @@ export const getChangePasswordToken = async (token) => {
 
 const recodeHashToRedis = async (redisClient, user, index, token) => {
     await redisClient.zadd(`user${user.id}`, `${index}`, token);
+    redisClient.expire(`user${user.id}`, process.env.JWT_ACCESS_LIFETIME);
 }
 
 export const saveSessionToRedis = async (user, tokentimelife, index) => {

@@ -130,8 +130,10 @@ module.exports = () => {
             }
 
             const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
+            const userSessionNumber = refreshToken.dataValues.id;
+
             const userId = refreshToken.dataValues.id;
-            const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userId);
+            const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userSessionNumber);
 
             const tokens = {
                 refreshToken: refreshToken.tokenname,
