@@ -117,11 +117,7 @@ export const checkCorrectAccessToken = async (userId, token) => {
     }
 }
 
-export const updateAccessToken = async (user, oldToken, tokentimelife) => {
-    const deletedToken = await redisClient.zrem(`user${user.id}`, oldToken);
-    if(!deletedToken) {
-        return false
-    }
+export const updateAccessToken = async (user, tokentimelife) => {
     const token = await generateJWT(user, tokentimelife);
     await recodeHashToRedis(redisClient, user, user.id, token);
     return token;

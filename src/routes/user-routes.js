@@ -3,7 +3,7 @@ import HttpStatus from 'http-status-codes';
 import {
     deleteUser,
     getAllUsers,
-    getUserByEmail,
+    getUserByEmail, getUserRoleByUserId,
     getUserWithID,
     updateUser
 } from "../services/user-service";
@@ -54,6 +54,7 @@ module.exports = () => {
             check('email').normalizeEmail().isEmail(),
             check('password', 'Enter a password with five or more characters').isLength({min: 5})
         ],
+        authorize(),
         badRequestErrorHandler(async (req, res) => {
             const errors = validationResult(req);
 
@@ -61,9 +62,22 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
             }
 
-            const result = await updateUser(req.body);
+            const userId = req.userId;
+            const userRoleObject = await getUserRoleByUserId(userId);
+            const role = userRoleObject.dataValues.role;
 
-            res.status(HttpStatus.CREATED).send(result);
+            if (role === 'admin') {
+                await updateUser(req.body.id, req.body);
+            }
+
+            else {
+                if (req.body.id) {
+                    return res.status(HttpStatus.FORBIDDEN).send();
+                }
+                await updateUser(userId, req.body);
+            }
+
+            res.status(HttpStatus.OK).send();
         })
     );
 

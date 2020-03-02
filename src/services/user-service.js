@@ -42,10 +42,10 @@ export const confirmUser = (id) => {
     })
 }
 
-export const updateUser = (user) => {
+export const updateUser = (id, user) => {
     const salt = generateSalt();
     const password = generateHash(user.password, salt);
-    const { id, username, email, role, isConfirm, city, birthdate } = user;
+    const { username, email, role, isConfirm, city, birthdate } = user;
     return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
         where: {
             id

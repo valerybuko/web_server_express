@@ -28,6 +28,7 @@ import {comparePassword} from "../passwordHelper";
 import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 import authorize from '../middleware/Authorization';
+import jwtDecode from 'jwt-decode';
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -65,21 +66,17 @@ module.exports = () => {
             const newUserId = newUser.dataValues.id;
             const userRole = await createUserRole(userrole, newUserId);
             const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
-            const createUserSuccessfulParams = {
-                newUser,
-                confirmationToken
-            }
 
+            //await sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
 
-            //await sendUserConfirmation(confirmation_email);
-
-            res.status(HttpStatus.OK).send(createUserSuccessfulParams);
+            res.status(HttpStatus.CREATED).send();
         })
     );
 
-    router.post('/confirm',
+    router.put('/confirm',
         badRequestErrorHandler(async (req, res) => {
-            const token = req.body.confirmationToken;
+            const token = req.query.token;
+
             const userObject = await getConfirmationToken(token);
 
             if (!userObject) {
@@ -136,7 +133,6 @@ module.exports = () => {
             const userId = refreshToken.dataValues.id;
             const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userId);
 
-
             const tokens = {
                 refreshToken: refreshToken.tokenname,
                 accessToken
@@ -146,7 +142,9 @@ module.exports = () => {
         })
     );
 
-    router.post('/logout', badRequestErrorHandler(async (req, res) => {
+    router.post('/logout',
+        authorize(),
+        badRequestErrorHandler(async (req, res) => {
             await deleteSession(req.body.id, req.headers.authorization);
             res.send();
         })
@@ -229,30 +227,23 @@ module.exports = () => {
     router.put('/refresh/tokens',
         badRequestErrorHandler(async (req, res) => {
             const token = req.body.refreshToken;
-            const authorizationToken = req.headers.authorization;
-            const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
-
-            if (!isValid) {
-                return res.status(HttpStatus.FORBIDDEN).send();
-            }
-
             const refreshTokenObject = await getRefreshToken(token);
 
             if (!refreshTokenObject) {
-                return res.status(HttpStatus.UNAUTHORIZED).send();
+                return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
             const userId = refreshTokenObject.dataValues.userId;
             const userObject = await getUserWithID(userId);
 
             if (!userObject) {
-                return res.status(HttpStatus.NOT_FOUND).send();
+                return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
 
             const user = userObject.dataValues;
             const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(HttpStatus.BAD_REQUEST).send());
-            const accessToken = await updateAccessToken(user, authorizationToken, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
+            const accessToken = await updateAccessToken(user, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
             const tokens = {
                 accessToken,
                 refreshToken

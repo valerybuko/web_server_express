@@ -17,12 +17,12 @@ export const mailer = async (options) => {
     });
 };
 
-export const sendUserConfirmation = async (useremail) => {
+export const sendUserConfirmation = async (useremail, token) => {
     const mailOptions = {
         from: 'itechartgroup.valerybuko@gmail.com',
         to: useremail,
         subject: 'Регистрация аккаутна',
-        html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm>Подтвердить регистрацию</a></h2>`
+        html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${token}>Подтвердить регистрацию</a></h2>`
     };
 
     await mailer(mailOptions);
