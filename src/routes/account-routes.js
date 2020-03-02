@@ -132,7 +132,6 @@ module.exports = () => {
             const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
             const userSessionNumber = refreshToken.dataValues.id;
 
-            const userId = refreshToken.dataValues.id;
             const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userSessionNumber);
 
             const tokens = {
@@ -184,13 +183,9 @@ module.exports = () => {
                 return res.status(HttpStatus.FORBIDDEN).send();
             }
 
-            const newtoken = {
-                changePasswordToken: token
-            }
+            await sendPasswordConfirmation(confirmationEmail, token);
 
-            await sendPasswordConfirmation(confirmationEmail);
-
-            res.status(HttpStatus.OK).send(newtoken);
+            res.status(HttpStatus.OK).send();
         })
     );
 
@@ -203,7 +198,7 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
             }
 
-            const token = req.body.changePasswordToken;
+            const token = req.query.token;
             const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
 
             if (!isValid) {

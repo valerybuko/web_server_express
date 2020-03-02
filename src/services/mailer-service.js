@@ -28,12 +28,12 @@ export const sendUserConfirmation = async (useremail, token) => {
     await mailer(mailOptions);
 }
 
-export const sendPasswordConfirmation = async (useremail) => {
+export const sendPasswordConfirmation = async (useremail, token) => {
     const mailOptions = {
         from: 'itechartgroup.valerybuko@gmail.com',
         to: useremail,
         subject: 'Смена пароля',
-        html: `<h2>Для смены пароля перейдите по ссылке <br/><a href=localhost:8000/updatepass>Подтвердить регистрацию</a></h2>`
+        html: `<h2>Для смены пароля перейдите по ссылке <br/><a href=localhost:8000/updatepass?token=${token}>Подтвердить регистрацию</a></h2>`
     };
 
     await mailer(mailOptions);
