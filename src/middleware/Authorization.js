@@ -7,7 +7,6 @@ export default () => async (req, res, next) => {
     const userData = jwt.decode(req.headers.authorization);
     const user = userData.user;
     req.userId = user.id;
-    console.log('decoded token data', userData);
 
     const checking = await checkCorrectAccessToken(req.userId, req.headers.authorization);
 

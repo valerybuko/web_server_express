@@ -109,7 +109,6 @@ export const checkCorrectAccessToken = async (userId, token) => {
             } else {
                 resolve(value);
             }
-
         });
     });
     const tokensArray = await zrange(`user${userId}`, 0, -1);
@@ -121,7 +120,8 @@ export const checkCorrectAccessToken = async (userId, token) => {
     }
 }
 
-export const updateAccessToken = async (user, tokentimelife) => {
+export const updateAccessToken = async (sessionID ,user, tokentimelife) => {
+    await redisClient.del(`user${sessionID}`);
     const token = await generateJWT(user, tokentimelife);
     await recodeHashToRedis(redisClient, user, user.id, token);
     return token;
@@ -135,7 +135,16 @@ export const verifyToken = (token, REFRESH_TOKEN_SECRET) => jwt.verify(token, RE
     }
 });
 
-export const deleteSession = async (userId, accessToken) => {
-    await deleteUserSession(userId);
-    await redisClient.zrem(`user${userId}`, accessToken);
+export const deleteSession = async (userID, sessionID) => {
+    await deleteUserSession(userID);
+    await redisClient.del(`user${sessionID}`);
+}
+
+export const getSessionData = async (id) => {
+    const sessionData = await UsersSessions.findOne({
+        where: {
+            userId: id
+        }
+    });
+    return sessionData;
 }

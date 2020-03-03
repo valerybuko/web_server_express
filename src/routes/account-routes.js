@@ -21,7 +21,7 @@ import {
     deleteConfirmationToken,
     getChangePasswordToken,
     createConfirmationToken,
-    deleteChangePasswordToken, deleteSession
+    deleteChangePasswordToken, deleteSession, getSessionData
 } from "../services/auth-service";
 
 import {comparePassword} from "../passwordHelper";
@@ -146,7 +146,9 @@ module.exports = () => {
     router.post('/logout',
         authorize(),
         badRequestErrorHandler(async (req, res) => {
-            await deleteSession(req.body.id, req.headers.authorization);
+            const sessionDataObject = await getSessionData(req.body.id);
+            const sessionId = sessionDataObject.dataValues.id;
+            await deleteSession(req.body.id, sessionId);
             res.send();
         })
     )
@@ -183,7 +185,7 @@ module.exports = () => {
                 return res.status(HttpStatus.FORBIDDEN).send();
             }
 
-            await sendPasswordConfirmation(confirmationEmail, token);
+            //await sendPasswordConfirmation(confirmationEmail, token);
 
             res.status(HttpStatus.OK).send();
         })
@@ -230,17 +232,20 @@ module.exports = () => {
                 return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
-            const userId = refreshTokenObject.dataValues.userId;
-            const userObject = await getUserWithID(userId);
+            const userID = refreshTokenObject.dataValues.userId;
+            const userObject = await getUserWithID(userID);
 
             if (!userObject) {
                 return res.status(HttpStatus.BAD_REQUEST).send();
             }
 
+            const sessionDataObject = await getSessionData(userID);
+            const sessionID = sessionDataObject.dataValues.id;
+
 
             const user = userObject.dataValues;
-            const refreshToken = await updateRefreshToken(user, req.body.refreshToken).catch(err => res.status(HttpStatus.BAD_REQUEST).send());
-            const accessToken = await updateAccessToken(user, '1h').catch(err => res.status(HttpStatus.BAD_REQUEST).send());
+            const refreshToken = await updateRefreshToken(user, req.body.refreshToken);
+            const accessToken = await updateAccessToken(sessionID ,user, '1h');
             const tokens = {
                 accessToken,
                 refreshToken
