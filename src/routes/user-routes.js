@@ -13,42 +13,104 @@ import authorize from '../middleware/Authorization';
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
-module.exports = () => {
-    router.get('/users',
-        badRequestErrorHandler(async (req, res) => {
-            const allUsers = await getAllUsers();
+export default class UserController {
+    router;
 
-            if (!allUsers.length) {
-                return res.status(HttpStatus.NOT_FOUND).send();
+    constructor() {
+        this.router = express.Router();
+        this.initializeRoutes();
+    }
+
+    checkValidation = () => {
+        const checkingArray = [
+            check('email', 'Wrong email address').normalizeEmail().isEmail(),
+            check('password', 'Enter a password with five or more characters').isLength({min: 5})
+        ];
+        return checkingArray;
+    }
+
+    checkEmail = () => {
+        const checkingArray = [
+            check('email', 'Wrong email address').normalizeEmail().isEmail(),
+        ];
+        return checkingArray;
+    }
+
+    initializeRoutes = () => {
+        const path = '/api/users';
+
+        this.router.get(path, this.checkValidation(), this.getUsers);
+        this.router.get(`${path}/user`, this.getUser);
+        this.router.get(`${path}/email`, this.checkEmail(), this.getEmail);
+        this.router.put(`${path}/user`, this.checkValidation(), this.updateUser);
+        this.router.delete(`${path}/user`, this.deleteUser);
+
+        return router;
+    }
+
+    getUsers = async (req, res) => {
+        const allUsers = await getAllUsers();
+
+        if (!allUsers.length) {
+            return res.status(HttpStatus.NOT_FOUND).send();
+        }
+
+        res.status(HttpStatus.OK).send(allUsers);
+    }
+
+    getUser = async (req, res) => {
+        const user = await getUserWithID(req.query.id);
+
+        if (!user) {
+            return res.status(HttpStatus.NOT_FOUND).send();
+        }
+
+        res.status(HttpStatus.OK).send(user);
+    }
+
+    getEmail = async (req, res) => {
+        const user = await getUserByEmail(req.body.email);
+
+        if (!user) {
+            return res.status(HttpStatus.NOT_FOUND).send();
+        }
+
+        res.status(HttpStatus.OK).send(user);
+    }
+
+    updateUser = async (req, res) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
+        }
+
+        const userId = req.query.id;
+        const userRoleObject = await getUserRoleByUserId(userId);
+        const role = userRoleObject.dataValues.role;
+
+        if (role === 'admin') {
+            await updateUser(req.body.id, req.body);
+        }
+
+        else {
+            if (req.body.id) {
+                return res.status(HttpStatus.FORBIDDEN).send();
             }
+            await updateUser(userId, req.body);
+        }
 
-            res.status(HttpStatus.OK).send(allUsers);
-        })
-    );
+        res.status(HttpStatus.OK).send();
+    }
 
-    router.get('/user',
-        badRequestErrorHandler(async (req, res) => {
-            const user = await getUserWithID(req.query.id);
+    deleteUser = async (req, res) => {
+        await deleteUser(req.query.id);
 
-            if (!user) {
-                return res.status(HttpStatus.NOT_FOUND).send();
-            }
+        res.status(HttpStatus.OK).send();
+    }
+}
 
-            res.status(HttpStatus.OK).send(user);
-        })
-    );
-
-    router.get('/email',
-        badRequestErrorHandler(async (req, res) => {
-            const user = await getUserByEmail(req.body.email);
-
-            if (!user) {
-                return res.status(HttpStatus.NOT_FOUND).send();
-            }
-
-            res.status(HttpStatus.OK).send(user);
-        })
-    );
+/*module.exports = () => {
 
     router.put('/user', [
             check('email').normalizeEmail().isEmail(),
@@ -90,4 +152,4 @@ module.exports = () => {
     );
 
     return router;
-}
+}*/
