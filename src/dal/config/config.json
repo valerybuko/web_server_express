@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "valera",
+    "password": "qwe12345",
+    "database": "slack",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "valera",
+    "password": "qwe12345",
+    "database": "slack",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "valera",
+    "password": "qwe12345",
+    "database": "slack",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
