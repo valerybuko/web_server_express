@@ -6,7 +6,7 @@ import sequelize from "./src/dal";
 import router from "./src/routes";
 
 const app = express();
-const PORT = 8000;
+const PORT = 8001;
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost/Development', {

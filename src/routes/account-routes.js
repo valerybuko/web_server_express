@@ -34,11 +34,7 @@ const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
 module.exports = () => {
-    router.post('/create-user', [
-            check('email').normalizeEmail().isEmail(),
-            check('confirmation_email').normalizeEmail().isEmail(),
-            check('password', 'Enter a password with five or more characters').isLength({min: 5})
-        ],
+    router.post('/create-user',
         badRequestErrorHandler(async (req, res) => {
             const errors = validationResult(req);
 
