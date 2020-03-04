@@ -1,7 +1,11 @@
 import Sequelize from "sequelize";
-import sequelize from "../dal";
+import sequelize from "../index";
+import UserRoles from "./UserRolesModel";
+import UsersSessions from "./UsersSessionsModel";
+import ConfirmationTokens from "./ConfirmationTokensModel";
+import ChangePasswordTokens from "./ChangePasswordTokensModel";
 
-const UsersModel = sequelize.define('users', {
+const Users = sequelize.define('users', {
     username: {
         type: Sequelize.STRING,
         allowNull: false
@@ -33,4 +37,9 @@ const UsersModel = sequelize.define('users', {
     }
 });
 
-export default UsersModel;
+Users.hasMany(UsersSessions, { onDelete: "cascade" } );
+Users.hasOne(ConfirmationTokens, { onDelete: "cascade" });
+Users.hasOne(ChangePasswordTokens, { onDelete: "cascade" });
+Users.hasOne(UserRoles, { onDelete: "cascade" });
+
+export default Users;

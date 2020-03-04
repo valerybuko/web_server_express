@@ -4,7 +4,10 @@
   "description": "crm backend",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./index.js --exec babel-node -e js"
+    "start": "nodemon ./index.js --exec babel-node -e js",
+    "sqlz:migrate": "./node_modules/.bin/sequelize db:migrate",
+    "sqlz:undo": "./node_modules/.bin/sequelize db:migrate:undo",
+    "sqlz:new": "./node_modules/.bin/sequelize migration:create --name mysql-001"
   },
   "author": "Valery Buko",
   "license": "ISC",
@@ -29,11 +32,13 @@
     "nodemon": "^2.0.2",
     "redis": "^3.0.2",
     "sequelize": "^5.21.4",
+    "sequelize-auto-migrations": "^1.0.3",
     "sql": "^0.78.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "babel-preset-stage-0": "^6.24.1"
+    "babel-preset-stage-0": "^6.24.1",
+    "sequelize-cli": "^5.5.1"
   }
 }

@@ -1,7 +1,7 @@
 import { generateHash, generateSalt } from "../passwordHelper";
-import Users from "../sequelize/UsersModel";
-import UserRoles from "../sequelize/UserRolesModel";
-import UsersSessions from "../sequelize/UsersSessionsModel";
+import Users from "../dal/sequelize/UsersModel";
+import UserRoles from "../dal/sequelize/UserRolesModel";
+import UsersSessions from "../dal/sequelize/UsersSessionsModel";
 
 export const addNewUser = (user) => {
     const salt = generateSalt();

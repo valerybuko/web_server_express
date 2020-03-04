@@ -1,8 +1,8 @@
-import UsersSessions from "../sequelize/UsersSessionsModel";
+import UsersSessions from "../dal/sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
 import redisClient from "../dal/redis";
-import ConfirmationTokens from "../sequelize/ConfirmationTokensModel";
-import ChangePasswordTokens from "../sequelize/ChangePasswordTokensModel";
+import ConfirmationTokens from "../dal/sequelize/ConfirmationTokensModel";
+import ChangePasswordTokens from "../dal/sequelize/ChangePasswordTokensModel";
 import { deleteUserSession } from "./user-service";
 
 export const REFRESH_TOKEN_SECRET = 'abc123';

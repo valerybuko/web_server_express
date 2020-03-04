@@ -2,11 +2,6 @@ import express from 'express';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import Users from "./src/sequelize/UsersModel";
-import UserRoles from "./src/sequelize/UserRolesModel";
-import UsersSessions from "./src/sequelize/UsersSessionsModel";
-import ConfirmationTokens from "./src/sequelize/ConfirmationTokensModel";
-import ChangePasswordTokens from "./src/sequelize/ChangePasswordTokensModel";
 import sequelize from "./src/dal";
 import router from "./src/routes";
 
@@ -19,12 +14,7 @@ mongoose.connect('mongodb://localhost/Development', {
   useUnifiedTopology: true
 });
 
-Users.hasMany(UsersSessions, { onDelete: "cascade" } );
-Users.hasOne(ConfirmationTokens, { onDelete: "cascade" });
-Users.hasOne(ChangePasswordTokens, { onDelete: "cascade" });
-Users.hasOne(UserRoles, { onDelete: "cascade" });
-
-sequelize.sync({ force: true })
+sequelize.sync()
     .then(res => console.log('Connection to the database has been successful'))
     .catch(err => console.log(err));
 

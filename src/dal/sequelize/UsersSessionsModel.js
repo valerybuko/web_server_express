@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import sequelize from "../dal";
+import sequelize from "../index";
 
 export const UsersSessionsModel = sequelize.define('users_sessions', {
     tokenname: {
