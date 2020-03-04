@@ -6,23 +6,40 @@ import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updateP
 
 const router = express.Router();
 
-module.exports = () => {
-    router.put('/change/userrole',
-        badRequestErrorHandler(async (req, res) => {
-            const { admin_id, userrole, id } = req.body;
+export default class AdminController {
+    router;
 
-            const role = await checkAdminUserRole(admin_id);
+    constructor() {
+        this.router = express.Router();
+        this.initializeRoutes();
+    }
 
-            if(role !== 'admin') {
-                return res.status(HttpStatus.FORBIDDEN).send();
-            }
+    initializeRoutes = () => {
+        const path = '/api/admin';
 
-            await changedUserRole(userrole, id).catch(err => console.log(err));
+        this.router.put(`${path}/change`, this.changeUserRole);
 
-            res.status(HttpStatus.OK).send();
-        })
-    );
+        return router;
+    }
 
+    changeUserRole = async (req, res) => {
+        const admin_id = req.query.admin_id;
+        const id = req.query.id;
+        const newUserRole = req.body.role;
+
+        const role = await checkAdminUserRole(admin_id);
+
+        if(role !== 'admin') {
+            return res.status(HttpStatus.FORBIDDEN).send();
+        }
+
+        await changedUserRole(newUserRole, id).catch(err => console.log(err));
+
+        res.status(HttpStatus.OK).send();
+    }
+}
+
+/*module.exports = () => {
     router.post('/add-development-plans',
         addNewPlans
     );
@@ -44,4 +61,4 @@ module.exports = () => {
     )
 
     return router;
-}
+}*/
