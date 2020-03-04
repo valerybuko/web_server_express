@@ -14,7 +14,7 @@ mongoose.connect('mongodb://localhost/Development', {
   useUnifiedTopology: true
 });
 
-sequelize.sync()
+sequelize.sync( {force: true} )
     .then(res => console.log('Connection to the database has been successful'))
     .catch(err => console.log(err));
 
