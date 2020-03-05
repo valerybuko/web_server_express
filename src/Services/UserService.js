@@ -1,7 +1,7 @@
 import PasswordHelperService from "./PasswordHelperService";
-import Users from "../DAL/Sequelize/UsersModel";
-import UserRoles from "../DAL/Sequelize/UserRolesModel";
-import UsersSessions from "../DAL/Sequelize/UsersSessionsModel";
+import Users from "../Dal/MySql/Models/UsersModel";
+import UserRoles from "../Dal/MySql/Models/UserRolesModel";
+import UsersSessions from "../Dal/MySql/Models/UsersSessionsModel";
 
 export default class UserService {
     constructor() {

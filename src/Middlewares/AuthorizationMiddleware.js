@@ -1,5 +1,6 @@
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
+import RedisRepository from "../Dal/Redis/repository";
 import { checkCorrectAccessToken } from "../Services/AuthService";
 
 

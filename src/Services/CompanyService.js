@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { CompanyDevelopmentSchema } from "../DAL/Mongoose/CompanyDevelopmentSchema";
+import { CompanyDevelopmentSchema } from "../Dal/MongoDB/Mongoose/CompanyDevelopmentSchema";
 
 const DevelopmentPlans = mongoose.model('CompanyDevelopmentPlans', CompanyDevelopmentSchema);
 

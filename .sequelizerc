@@ -1,8 +1,8 @@
 const path = require('path')
 
 module.exports = {
-  "config": path.resolve('./src/dal/config', 'config.json'),
-  "models-path": path.resolve('./src/dal/sequelize'),
-  "seeders-path": path.resolve('./src/dal/seeders'),
-  "migrations-path": path.resolve('./src/dal/migrations')
+  "config": path.resolve('./src/Dal/MySql/Migrations/config', 'config.json'),
+  "models-path": path.resolve('./src/Dal/MySql/Models'),
+  "seeders-path": path.resolve('./src/Dal/MySql/Migrations/seeders'),
+  "migrations-path": path.resolve('./src/Dal/MySql/Migrations')
 }
