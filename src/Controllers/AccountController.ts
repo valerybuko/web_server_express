@@ -1,26 +1,31 @@
 import express, { Router } from 'express';
+import 'reflect-metadata';
+import types from '../Ioc/types';
+import { inject, injectable } from 'inversify';
+import { IMailerService } from '../Domain';
 import HttpStatus from 'http-status-codes';
 import UserService from "../Services/UserService";
-import MailerService from "../Services/MailerService";
 import AuthorizeService from "../Services/AuthService";
 import PasswordHelperService from "../Services/PasswordHelperService";
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
+@injectable()
 export default class AccountController {
     router: Router;
     private readonly authorizeService: AuthorizeService
     private readonly passwordService: PasswordHelperService
-    private readonly mailerService: MailerService
+    private readonly mailerService: IMailerService
     private readonly userService: UserService
 
-    constructor() {
+    constructor(@inject(types.MailerService) mailerService: IMailerService) {
         this.router = express.Router();
-        this.initializeRoutes();
         this.authorizeService = new AuthorizeService();
         this.userService = new UserService();
         this.passwordService = new PasswordHelperService();
-        this.mailerService = new MailerService();
+        this.mailerService = mailerService;
+        this.initializeRoutes();
+        console.log('==================', mailerService);
     }
 
     checkValidation = () => {
@@ -66,7 +71,7 @@ export default class AccountController {
         if (!errors.isEmpty()) {
             return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
         }
-
+        
         const {userrole, username, email, salt, city, birthdate, confirmation_email} = req.body;
 
         if (userrole !== 'user') {
@@ -87,8 +92,8 @@ export default class AccountController {
         const newUserId = newUser.dataValues.id;
         const userRole = await this.userService.createUserRole(userrole, newUserId);
         const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
-
-        //await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
+        
+        await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
 
         res.status(HttpStatus.CREATED).send();
     }

@@ -1,17 +1,21 @@
 import express, { Router } from 'express';
-import AccountController from "./AccountController";
 import UserController from "./UserController";
 import AdminController from "./AdminController";
+import { IBaseController, IAccountController } from '../Domain';
+import { injectable, inject } from 'inversify';
+import types from '../Ioc/types';
+import AccountController from './AccountController';
 
-export default class BaseController {
-    private readonly accountController: any
+@injectable()
+export default class BaseController implements IBaseController {
+    private readonly accountController: IAccountController
     private readonly userController: any
     private readonly adminController: any
     router: Router
 
-    constructor() {
+    constructor(@inject(types.AccountController) accountController: IAccountController) {
         this.router = express.Router();
-        this.accountController = new AccountController();
+        this.accountController = accountController;
         this.userController = new UserController();
         this.adminController = new AdminController();
         this.initializeRoutes()

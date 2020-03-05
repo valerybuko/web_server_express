@@ -1,22 +1,25 @@
 import express, { Express } from 'express';
+import { injectable } from 'inversify';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
 import BaseController from "./Controllers";
+import { IBaseController, IMailerService } from '../Domain';
+import Ioc from './Ioc';
+import Types from './Ioc/types';
+import MailerService from './Services/MailerService';
 /*import mongoose from 'mongoose';*/
-/*import sequelize from "./Dal/MySql/Models/index";
-import router from "./Controllers/index";
-import BaseController from './Controllers/index';*/
 
 const app = express();
 const PORT = 8001;
 
+@injectable()
 export default class Application {
     private app: Express
-    private readonly baseController: BaseController
+    private readonly baseController: IBaseController
 
     constructor() {
       this.app = express();
-      this.baseController = new BaseController();
+      this.baseController = Ioc.get<IBaseController>(Types.BaseController);
         /*mongoose.Promise = global.Promise;
         mongoose.connect('mongodb://localhost/Development', {
             useNewUrlParser: true,

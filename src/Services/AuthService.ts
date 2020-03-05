@@ -5,6 +5,7 @@ import ConfirmationTokens from "../Dal/MySql/Models/ConfirmationTokensModel";
 import ChangePasswordTokens from "../Dal/MySql/Models/ChangePasswordTokensModel";
 import RedisRepository from "../Dal/Redis/repository";
 
+
 export default class AuthorizeService {
     REFRESH_TOKEN_SECRET = 'abc123'
 
