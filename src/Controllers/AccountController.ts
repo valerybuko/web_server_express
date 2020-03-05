@@ -1,48 +1,25 @@
-import express from 'express';
+import express, { Router } from 'express';
 import HttpStatus from 'http-status-codes';
-import UserService, {
-    addNewUser,
-    createUserRole,
-    getUserByEmail,
-    getUserWithID,
-    confirmUser,
-    updateUserPassword
-} from "../Services/UserService";
-import {
-    createRefreshToken,
-    saveSessionToRedis,
-    REFRESH_TOKEN_SECRET,
-    updateRefreshToken,
-    updateAccessToken,
-    getRefreshToken,
-    verifyToken,
-    createChangePasswordToken,
-    getConfirmationToken,
-    deleteConfirmationToken,
-    getChangePasswordToken,
-    createConfirmationToken,
-    deleteChangePasswordToken, deleteSession, getSessionData
-} from "../Services/AuthService";
-import MailerService, {sendPasswordConfirmation, sendUserConfirmation} from "../Services/MailerService";
-import badRequestErrorHandler from "../Middlewares/PromiseMiddleware";
-import authorize from '../Middlewares/AuthorizationMiddleware';
-import jwtDecode from 'jwt-decode';
+import UserService from "../Services/UserService";
+import MailerService from "../Services/MailerService";
 import AuthorizeService from "../Services/AuthService";
 import PasswordHelperService from "../Services/PasswordHelperService";
-import BadRequestErrorHandler from "../Middlewares/PromiseMiddleware";
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
 export default class AccountController {
-    router;
-    BadRequestErrorHandler
+    router: Router;
+    private readonly authorizeService: AuthorizeService
+    private readonly passwordService: PasswordHelperService
+    private readonly mailerService: MailerService
+    private readonly userService: UserService
 
     constructor() {
         this.router = express.Router();
         this.initializeRoutes();
         this.authorizeService = new AuthorizeService();
         this.userService = new UserService();
-        this.passwordHelper = new PasswordHelperService();
+        this.passwordService = new PasswordHelperService();
         this.mailerService = new MailerService();
     }
 

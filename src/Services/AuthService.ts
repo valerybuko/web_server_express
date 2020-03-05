@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import redisClient from "../Dal/Redis";
 import ConfirmationTokens from "../Dal/MySql/Models/ConfirmationTokensModel";
 import ChangePasswordTokens from "../Dal/MySql/Models/ChangePasswordTokensModel";
-import { deleteUserSession } from "./UserService";
 import RedisRepository from "../Dal/Redis/repository";
 
 export default class AuthorizeService {
@@ -100,35 +99,6 @@ export default class AuthorizeService {
         await this.redisRepository.recodeHashToRedis(redisClient, user, index, token);
         return token;
     }
-
-
-    /*  recodeHashToRedis = async (redisClient, user, index, token) => {
-          await redisClient.zadd(`user${user.id}`, `${index}`, token);
-          redisClient.expire(`user${user.id}`, process.env.JWT_ACCESS_LIFETIME);
-      }*/
-
-    /*checkCorrectAccessToken = async (userId, token) => {
-            const zrange = (id, start, end) => new Promise((resolve, reject) => {
-                redisClient.zrange(id, start, end, (err, value) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(value);
-                    }
-                });
-            });
-        const tokensArray = await zrange(`user${userId}`, 0, -1);
-
-        if (!tokensArray.includes(token)) {
-            return false
-        } else {
-            return true
-        }
-    }*/
-
-    /*deleteSession = async (sessionID) => {
-       await redisClient.del(`user${sessionID}`);
-   }*/
 
     updateAccessToken = async (sessionID ,user, tokentimelife) => {
         await this.redisRepository.deleteSession(`user${sessionID}`);
