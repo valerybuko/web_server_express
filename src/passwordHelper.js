@@ -1,7 +1,19 @@
 import crypto from 'crypto';
 
-export const generateSalt = () => crypto.randomBytes(16).toString('hex');
+export default class PasswordHelper {
+    bytesSize = 16
+    encodingType = 'hex'
+    algorithmType = 'sha256'
 
-export const generateHash = (password, salt) => crypto.createHash('sha256').update(password + salt).digest('hex');
+    constructor() {
 
-export const comparePassword = (password, salt, hashedPassword) => crypto.createHash('sha256').update(password + salt).digest('hex') === hashedPassword;
+    }
+
+    generateSalt = () => {
+        return crypto.randomBytes(this.bytesSize).toString(this.encodingType);
+    }
+
+    generateHash = (salt, password) => {
+        return  crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType);
+    }
+}

@@ -23,8 +23,7 @@ import {
     createConfirmationToken,
     deleteChangePasswordToken, deleteSession, getSessionData
 } from "../services/auth-service";
-
-import {comparePassword} from "../passwordHelper";
+import CorrectPasswordCheck from "../checkCorrectPassword";
 import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 import authorize from '../middleware/Authorization';
@@ -140,6 +139,8 @@ export default class AccountController {
             return res.status(HttpStatus.UNAUTHORIZED).json({errors: errors.array()});
         }
 
+        const passwordCheck = new CorrectPasswordCheck();
+
         const {email, password} = req.body;
         const appuserObject = await getUserByEmail(email);
 
@@ -154,7 +155,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isCorrectPassword = comparePassword(password, appuser.salt, appuser.password);
+        const isCorrectPassword = passwordCheck.comparePassword(password, appuser.salt, appuser.password);
         if (!isCorrectPassword) {
             res.status(HttpStatus.UNAUTHORIZED).send();
         }
