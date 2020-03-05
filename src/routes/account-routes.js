@@ -24,7 +24,7 @@ import {
     deleteChangePasswordToken, deleteSession, getSessionData
 } from "../services/auth-service";
 import CorrectPasswordCheck from "../checkCorrectPassword";
-import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
+import MailerService, {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 import authorize from '../middleware/Authorization';
 import jwtDecode from 'jwt-decode';
@@ -44,6 +44,7 @@ export default class AccountController {
         this.userService = new UserService();
         this.passwordCheck = new CorrectPasswordCheck();
         this.passwordHelper = new PasswordHelper();
+        this.mailerService = new MailerService();
     }
 
     checkValidation = () => {
@@ -111,7 +112,7 @@ export default class AccountController {
         const userRole = await this.userService.createUserRole(userrole, newUserId);
         const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
 
-        //await sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
+        await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
 
         res.status(HttpStatus.CREATED).send();
     }
@@ -212,7 +213,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        //await sendPasswordConfirmation(confirmationEmail, token);
+        await this.mailerService.sendPasswordConfirmation(confirmationEmail, token);
 
         res.status(HttpStatus.OK).send();
     }
