@@ -47,9 +47,7 @@ export default class UserService {
         })
     }
 
-    updateUser = (id, user) => {
-        const salt = generateSalt();
-        const password = generateHash(user.password, salt);
+    updateUser = (id, user, salt, password) => {
         const { username, email, role, isConfirm, city, birthdate } = user;
         return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
             where: {

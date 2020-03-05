@@ -1,6 +1,6 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
-import {
+import UserService, {
     deleteUser,
     getAllUsers,
     getUserByEmail, getUserRoleByUserId,
@@ -9,6 +9,7 @@ import {
 } from "../services/user-service";
 import badRequestErrorHandler from '../middleware/BadRequestErrorHandler';
 import authorize from '../middleware/Authorization';
+import PasswordHelper from "../passwordHelper";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -19,6 +20,8 @@ export default class UserController {
     constructor() {
         this.router = express.Router();
         this.initializeRoutes();
+        this.userService = new UserService();
+        this.passwordHelper = new PasswordHelper();
     }
 
     checkValidation = () => {
@@ -49,7 +52,7 @@ export default class UserController {
     }
 
     getUsers = async (req, res) => {
-        const allUsers = await getAllUsers();
+        const allUsers = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -59,7 +62,7 @@ export default class UserController {
     }
 
     getUser = async (req, res) => {
-        const user = await getUserWithID(req.query.id);
+        const user = await this.userService.getUserWithID(req.query.id);
 
         if (!user) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -69,7 +72,7 @@ export default class UserController {
     }
 
     getEmail = async (req, res) => {
-        const user = await getUserByEmail(req.body.email);
+        const user = await this.userService.getUserByEmail(req.body.email);
 
         if (!user) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -86,25 +89,29 @@ export default class UserController {
         }
 
         const userId = req.query.id;
-        const userRoleObject = await getUserRoleByUserId(userId);
+        const userRoleObject = await this.userService.getUserRoleByUserId(userId);
         const role = userRoleObject.dataValues.role;
 
         if (role === 'admin') {
-            await updateUser(req.body.id, req.body);
+            const salt = this.passwordHelper.generateSalt();
+            const password = this.passwordHelper.generateHash(req.body.password, salt);
+            await this.userService.updateUser(req.body.id, req.body, salt, password);
         }
 
         else {
             if (req.body.id) {
                 return res.status(HttpStatus.FORBIDDEN).send();
             }
-            await updateUser(userId, req.body);
+            const salt = this.passwordHelper.generateSalt();
+            const password = this.passwordHelper.generateHash(req.body.password, salt);
+            await this.userService.updateUser(userId, req.body, salt, password);
         }
 
         res.status(HttpStatus.OK).send();
     }
 
     deleteUser = async (req, res) => {
-        await deleteUser(req.query.id);
+        await this.userService.deleteUser(req.query.id);
 
         res.status(HttpStatus.OK).send();
     }
