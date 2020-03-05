@@ -1,6 +1,6 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
-import {
+import UserService, {
     addNewUser,
     createUserRole,
     getUserByEmail,
@@ -28,6 +28,8 @@ import {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
 import authorize from '../middleware/Authorization';
 import jwtDecode from 'jwt-decode';
+import AuthorizeService from "../services/auth-service";
+import PasswordHelper from "../passwordHelper";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -38,6 +40,10 @@ export default class AccountController {
     constructor() {
         this.router = express.Router();
         this.initializeRoutes();
+        this.authorizeService = new AuthorizeService();
+        this.userService = new UserService();
+        this.passwordCheck = new CorrectPasswordCheck();
+        this.passwordHelper = new PasswordHelper();
     }
 
     checkValidation = () => {
@@ -70,7 +76,7 @@ export default class AccountController {
         this.router.put(`${path}/confirm`, this.confirmAccount);
         this.router.post(`${path}/login`, this.checkValidation(), this.loginAccount);
         this.router.post(`${path}/logout`, this.logoutAccount);
-        this.router.post(`${path}/changepass`, this.checkEmailBeforePasswordReset(), this.checkPasswordAccount);
+        this.router.post(`${path}/changepass`, this.checkEmailBeforePasswordReset(), this.changePasswordAccount);
         this.router.put(`${path}/updatepass`, this.checkPasswordBeforeUpdate(), this.updatePasswordAccount);
         this.router.put(`${path}/refresh`, this.refreshTokensAccount);
 
@@ -94,16 +100,16 @@ export default class AccountController {
             return res.status(HttpStatus.BAD_REQUEST).send();
         }
 
-        const appuser = await getUserByEmail(email);
+        const appuser = await this.userService.getUserByEmail(email);
 
         if (appuser) {
             return res.status(HttpStatus.CONFLICT).send();
         }
 
-        const newUser = await addNewUser(req.body);
+        const newUser = await this.userService.addNewUser(req.body);
         const newUserId = newUser.dataValues.id;
-        const userRole = await createUserRole(userrole, newUserId);
-        const confirmationToken = await createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
+        const userRole = await this.userService.createUserRole(userrole, newUserId);
+        const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
 
         //await sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
 
@@ -112,13 +118,13 @@ export default class AccountController {
     confirmAccount = async (req, res) => {
         const token = req.query.token;
 
-        const userObject = await getConfirmationToken(token);
+        const userObject = await this.authorizeService.getConfirmationToken(token);
 
         if (!userObject) {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
+        const isValid = this.authorizeService.verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
             return res.status(HttpStatus.FORBIDDEN).send();
@@ -126,9 +132,9 @@ export default class AccountController {
 
         const userId = userObject.dataValues.userId;
 
-        await confirmUser(userId);
+        await this.userService.confirmUser(userId);
 
-        await deleteConfirmationToken(token);
+        await this.authorizeService.deleteConfirmationToken(token);
 
         res.status(HttpStatus.OK).send();
     }
@@ -139,10 +145,8 @@ export default class AccountController {
             return res.status(HttpStatus.UNAUTHORIZED).json({errors: errors.array()});
         }
 
-        const passwordCheck = new CorrectPasswordCheck();
-
         const {email, password} = req.body;
-        const appuserObject = await getUserByEmail(email);
+        const appuserObject = await this.userService.getUserByEmail(email);
 
         if (!appuserObject) {
             return res.status(HttpStatus.UNAUTHORIZED).send();
@@ -155,15 +159,15 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isCorrectPassword = passwordCheck.comparePassword(password, appuser.salt, appuser.password);
+        const isCorrectPassword = this.passwordCheck.comparePassword(password, appuser.salt, appuser.password);
         if (!isCorrectPassword) {
             res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
-        const refreshToken = await createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
+        const refreshToken = await this.authorizeService.createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
         const userSessionNumber = refreshToken.dataValues.id;
 
-        const accessToken = await saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userSessionNumber);
+        const accessToken = await this.authorizeService.saveSessionToRedis(appuser, `${process.env.JWT_ACCESS_LIFETIME}`, userSessionNumber);
 
         const tokens = {
             refreshToken: refreshToken.tokenname,
@@ -173,12 +177,13 @@ export default class AccountController {
         res.status(HttpStatus.OK).send(tokens);
     }
     logoutAccount = async (req, res) => {
-        const sessionDataObject = await getSessionData(req.body.id);
+        const sessionDataObject = await this.authorizeService.getSessionData(req.body.id);
         const sessionId = sessionDataObject.dataValues.id;
-        await deleteSession(req.body.id, sessionId);
+        await this.authorizeService.deleteSession(sessionId);
+        await this.userService.deleteUserSession(req.body.id);
         res.send();
     }
-    checkPasswordAccount = async (req, res) => {
+    changePasswordAccount = async (req, res) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -187,7 +192,7 @@ export default class AccountController {
 
         const email = req.body.user_email;
         const confirmationEmail = req.body.confirmation_email;
-        const userObject = await getUserByEmail(email);
+        const userObject = await this.userService.getUserByEmail(email);
 
         if (!userObject) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -199,7 +204,7 @@ export default class AccountController {
             return res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
-        const changePasswordTokenObject = await createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`);
+        const changePasswordTokenObject = await this.authorizeService.createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`);
         const token = changePasswordTokenObject.dataValues.tokenname;
 
 
@@ -219,13 +224,13 @@ export default class AccountController {
         }
 
         const token = req.query.token;
-        const isValid = verifyToken(token, REFRESH_TOKEN_SECRET);
+        const isValid = this.authorizeService.verifyToken(token, REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isConfirmToken = await getChangePasswordToken(token);
+        const isConfirmToken = await this.authorizeService.getChangePasswordToken(token);
 
         if (!isConfirmToken) {
             return res.status(HttpStatus.BAD_REQUEST).send();
@@ -233,34 +238,36 @@ export default class AccountController {
 
         const userId = isConfirmToken.dataValues.userId;
 
-        await updateUserPassword(userId, req.body.newPassword);
+        const salt = this.passwordHelper.generateSalt();
+        const password = this.passwordHelper.generateHash(salt, req.body.newPassword);
+        await this.userService.updateUserPassword(userId, password, salt);
 
-        deleteChangePasswordToken(token);
+        this.authorizeService.deleteChangePasswordToken(token);
 
         res.status(HttpStatus.OK).send('Password has been updated');
     }
     refreshTokensAccount = async (req, res) => {
         const token = req.body.refreshToken;
-        const refreshTokenObject = await getRefreshToken(token);
+        const refreshTokenObject = await this.authorizeService.getRefreshToken(token);
 
         if (!refreshTokenObject) {
             return res.status(HttpStatus.BAD_REQUEST).send();
         }
 
         const userID = refreshTokenObject.dataValues.userId;
-        const userObject = await getUserWithID(userID);
+        const userObject = await this.userService.getUserWithID(userID);
 
         if (!userObject) {
             return res.status(HttpStatus.BAD_REQUEST).send();
         }
 
-        const sessionDataObject = await getSessionData(userID);
+        const sessionDataObject = await this.authorizeService.getSessionData(userID);
         const sessionID = sessionDataObject.dataValues.id;
 
 
         const user = userObject.dataValues;
-        const refreshToken = await updateRefreshToken(user, req.body.refreshToken);
-        const accessToken = await updateAccessToken(sessionID, user, '1h');
+        const refreshToken = await this.authorizeService.updateRefreshToken(user, req.body.refreshToken);
+        const accessToken = await this.authorizeService.updateAccessToken(sessionID, user, '1h');
         const tokens = {
             accessToken,
             refreshToken

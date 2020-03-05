@@ -5,7 +5,154 @@ import ConfirmationTokens from "../dal/sequelize/ConfirmationTokensModel";
 import ChangePasswordTokens from "../dal/sequelize/ChangePasswordTokensModel";
 import { deleteUserSession } from "./user-service";
 
-export const REFRESH_TOKEN_SECRET = 'abc123';
+export default class AuthorizeService {
+    REFRESH_TOKEN_SECRET = 'abc123'
+
+    constructor() {
+    }
+
+    generateJWT = (user, tokentimelife) => {
+        const tokenData = {username: user.username, id: user.id};
+        return jwt.sign({user: tokenData}, this.REFRESH_TOKEN_SECRET, {expiresIn: tokentimelife});
+    }
+
+    generateConfirmationToken = (user, tokentimelife) => {
+        const confirmationToken = this.generateJWT(user, tokentimelife);
+        console.log(jwt.decode(confirmationToken));
+
+        return confirmationToken;
+    }
+
+    deleteConfirmationToken = (token) => {
+        return ConfirmationTokens.destroy({
+            where: {
+                tokenname: token
+            }
+        })
+    }
+
+    deleteChangePasswordToken = (token) => {
+        return ChangePasswordTokens.destroy({
+            where: {
+                tokenname: token
+            }
+        })
+    }
+
+    createRefreshToken = async (user, tokentimelife) => {
+        const token = await this.generateJWT(user, tokentimelife);
+        return UsersSessions.create({tokenname: token, userId: user.id});
+    }
+
+    updateRefreshToken = async (user, refToken) => {
+        const token = await this.generateJWT(user, `${process.env.JWT_REFRESH_LIFETIME}`);
+
+        await UsersSessions.update({ tokenname: token, userId: user.id }, {
+            where: {
+                tokenname: refToken
+            }
+        });
+
+        return token;
+    }
+
+    createConfirmationToken = async (user, tokentimelife) => {
+        const token = await this.generateConfirmationToken(user, tokentimelife);
+        return ConfirmationTokens.create({ tokenname: token, userId: user.id});
+    }
+
+    createChangePasswordToken = async (user, tokentimelife) => {
+        const token = await this.generateConfirmationToken(user, tokentimelife);
+        return  ChangePasswordTokens.create({ tokenname: token, userId: user.id });
+    }
+
+    getRefreshToken = async (token) => {
+        const refreshToken = await UsersSessions.findOne({
+            where: {
+                tokenname: token
+            }
+        });
+        return refreshToken;
+    }
+
+    getConfirmationToken = async (token) => {
+        const confirmationToken = await ConfirmationTokens.findOne({
+            where: {
+                tokenname: token
+            }
+        });
+        return confirmationToken;
+    }
+
+    getChangePasswordToken = async (token) => {
+        const changePasswordToken = await ChangePasswordTokens.findOne({
+            where: {
+                tokenname: token
+            }
+        });
+        return changePasswordToken;
+    }
+
+    recodeHashToRedis = async (redisClient, user, index, token) => {
+        await redisClient.zadd(`user${user.id}`, `${index}`, token);
+        redisClient.expire(`user${user.id}`, process.env.JWT_ACCESS_LIFETIME);
+    }
+
+    saveSessionToRedis = async (user, tokentimelife, index) => {
+        const token = await this.generateJWT(user, tokentimelife);
+        await this.recodeHashToRedis(redisClient, user, index, token);
+        return token;
+    }
+
+    checkCorrectAccessToken = async (userId, token) => {
+        const zrange = (id, start, end) => new Promise((resolve, reject) => {
+            redisClient.zrange(id, start, end, (err, value) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(value);
+                }
+            });
+        });
+        const tokensArray = await zrange(`user${userId}`, 0, -1);
+
+        if (!tokensArray.includes(token)) {
+            return false
+        } else {
+            return true
+        }
+    }
+
+    updateAccessToken = async (sessionID ,user, tokentimelife) => {
+        await redisClient.del(`user${sessionID}`);
+        const token = await this.generateJWT(user, tokentimelife);
+        await this.recodeHashToRedis(redisClient, user, user.id, token);
+        return token;
+    }
+
+    verifyToken = (token, REFRESH_TOKEN_SECRET) => jwt.verify(token, this.REFRESH_TOKEN_SECRET, (err) => {
+        if (err) {
+            return err
+        } else {
+            return true
+        }
+    });
+
+    deleteSession = async (sessionID) => {
+        await redisClient.del(`user${sessionID}`);
+    }
+
+    getSessionData = async (id) => {
+        const sessionData = await UsersSessions.findOne({
+            where: {
+                userId: id
+            }
+        });
+        return sessionData;
+    }
+}
+
+/*export const REFRESH_TOKEN_SECRET = 'abc123';
 
 export const generateJWT = (user, tokentimelife) => {
     const tokenData = {username: user.username, id: user.id};
@@ -147,4 +294,4 @@ export const getSessionData = async (id) => {
         }
     });
     return sessionData;
-}
+}*/

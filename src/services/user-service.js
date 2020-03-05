@@ -3,7 +3,109 @@ import Users from "../dal/sequelize/UsersModel";
 import UserRoles from "../dal/sequelize/UserRolesModel";
 import UsersSessions from "../dal/sequelize/UsersSessionsModel";
 
-export const addNewUser = (user) => {
+export default class UserService {
+    constructor() {
+    }
+
+    addNewUser = (user) => {
+        const passwordHelper = new PasswordHelper();
+        const salt = passwordHelper.generateSalt();
+        const password = passwordHelper.generateHash(user.password, salt)
+        const {username, email, city, birthdate} = user;
+        return Users.create({ username, email, password, salt, city, birthdate })
+    }
+
+    createUserRole = async (userrole, id) => {
+        return UserRoles.create({role: userrole, userId: id});
+    }
+
+    changedUserRole = async (userrole, id) => {
+        return UserRoles.update({ role: userrole }, {
+            where: {
+                userId: id
+            }
+        });
+    }
+
+    getAllUsers = () => {
+        return Users.findAll({raw:true})
+    }
+
+    getUserWithID = (id) => {
+        return Users.findByPk(id)
+    }
+
+    getRoleWithID = (id) => {
+        return UserRoles.findByPk(id)
+    }
+
+    confirmUser = (id) => {
+        return Users.update({ isConfirm: true }, {
+            where: {
+                id
+            }
+        })
+    }
+
+    updateUser = (id, user) => {
+        const salt = generateSalt();
+        const password = generateHash(user.password, salt);
+        const { username, email, role, isConfirm, city, birthdate } = user;
+        return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
+            where: {
+                id
+            }
+        })
+    }
+
+    updateUserPassword = (id, password, salt) => {
+        return Users.update({ password, salt }, {
+            where: {
+                id
+            }
+        })
+    };
+
+    deleteUser = (id) => {
+        return Users.destroy({
+            where: {
+                id
+            }
+        })
+    }
+
+    deleteUserSession = (id) => {
+        return UsersSessions.destroy({
+            where: {
+                userId: id
+            }
+        })
+    }
+
+    getUserByEmail = (email) => {
+        return Users.findOne({
+            where: {
+                email
+            }
+        });
+    }
+
+    getUserRoleByUserId = (id) => {
+        return UserRoles.findOne({
+            where: {
+                userId: id
+            }
+        });
+    }
+
+    checkAdminUserRole = async (id) => {
+        const userRolesObject = await getUserRoleByUserId(id);
+        const userRole = userRolesObject.dataValues.role;
+        return userRole;
+    }
+}
+
+/*export const addNewUser = (user) => {
     const passwordHelper = new PasswordHelper();
     const salt = passwordHelper.generateSalt();
     const password = passwordHelper.generateHash(user.password, salt)
@@ -101,4 +203,4 @@ export const checkAdminUserRole = async (id) => {
     const userRolesObject = await getUserRoleByUserId(id);
     const userRole = userRolesObject.dataValues.role;
     return userRole;
-}
+}*/
