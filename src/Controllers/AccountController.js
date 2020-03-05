@@ -7,7 +7,7 @@ import UserService, {
     getUserWithID,
     confirmUser,
     updateUserPassword
-} from "../services/user-service";
+} from "../Services/UserService";
 import {
     createRefreshToken,
     saveSessionToRedis,
@@ -22,28 +22,27 @@ import {
     getChangePasswordToken,
     createConfirmationToken,
     deleteChangePasswordToken, deleteSession, getSessionData
-} from "../services/auth-service";
-import CorrectPasswordCheck from "../checkCorrectPassword";
-import MailerService, {sendPasswordConfirmation, sendUserConfirmation} from "../services/mailer-service";
-import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
-import authorize from '../middleware/Authorization';
+} from "../Services/AuthService";
+import MailerService, {sendPasswordConfirmation, sendUserConfirmation} from "../Services/MailerService";
+import badRequestErrorHandler from "../Middlewares/PromiseMiddleware";
+import authorize from '../Middlewares/AuthorizationMiddleware';
 import jwtDecode from 'jwt-decode';
-import AuthorizeService from "../services/auth-service";
-import PasswordHelper from "../passwordHelper";
-
+import AuthorizeService from "../Services/AuthService";
+import PasswordHelperService from "../Services/PasswordHelperService";
+import BadRequestErrorHandler from "../Middlewares/PromiseMiddleware";
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
 export default class AccountController {
     router;
+    BadRequestErrorHandler
 
     constructor() {
         this.router = express.Router();
         this.initializeRoutes();
         this.authorizeService = new AuthorizeService();
         this.userService = new UserService();
-        this.passwordCheck = new CorrectPasswordCheck();
-        this.passwordHelper = new PasswordHelper();
+        this.passwordHelper = new PasswordHelperService();
         this.mailerService = new MailerService();
     }
 
@@ -112,7 +111,7 @@ export default class AccountController {
         const userRole = await this.userService.createUserRole(userrole, newUserId);
         const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
 
-        await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
+        //await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
 
         res.status(HttpStatus.CREATED).send();
     }
@@ -160,7 +159,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isCorrectPassword = this.passwordCheck.comparePassword(password, appuser.salt, appuser.password);
+        const isCorrectPassword = this.passwordHelper.comparePassword(password, appuser.salt, appuser.password);
         if (!isCorrectPassword) {
             res.status(HttpStatus.UNAUTHORIZED).send();
         }
@@ -213,7 +212,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        await this.mailerService.sendPasswordConfirmation(confirmationEmail, token);
+        //await this.mailerService.sendPasswordConfirmation(confirmationEmail, token);
 
         res.status(HttpStatus.OK).send();
     }

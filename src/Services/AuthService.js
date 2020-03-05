@@ -1,9 +1,9 @@
-import UsersSessions from "../dal/sequelize/UsersSessionsModel";
+import UsersSessions from "../DAL/Sequelize/UsersSessionsModel";
 import jwt from 'jsonwebtoken';
-import redisClient from "../dal/redis";
-import ConfirmationTokens from "../dal/sequelize/ConfirmationTokensModel";
-import ChangePasswordTokens from "../dal/sequelize/ChangePasswordTokensModel";
-import { deleteUserSession } from "./user-service";
+import redisClient from "../DAL/Redis";
+import ConfirmationTokens from "../DAL/Sequelize/ConfirmationTokensModel";
+import ChangePasswordTokens from "../DAL/Sequelize/ChangePasswordTokensModel";
+import { deleteUserSession } from "./UserService";
 
 export default class AuthorizeService {
     REFRESH_TOKEN_SECRET = 'abc123'

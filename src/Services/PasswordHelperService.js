@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export default class PasswordHelper {
+export default class PasswordHelperService {
     bytesSize = 16
     encodingType = 'hex'
     algorithmType = 'sha256'
@@ -15,5 +15,9 @@ export default class PasswordHelper {
 
     generateHash = (salt, password) => {
         return  crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType);
+    }
+
+    comparePassword = (salt, password, hashedPassword) => {
+        return crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType) === hashedPassword;
     }
 }

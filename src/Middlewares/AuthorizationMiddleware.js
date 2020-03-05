@@ -1,6 +1,6 @@
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
-import { checkCorrectAccessToken } from "../services/auth-service";
+import { checkCorrectAccessToken } from "../Services/AuthService";
 
 
 export default () => async (req, res, next) => {

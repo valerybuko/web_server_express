@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import sequelize from "../index";
+import sequelize from "./index";
 import UserRoles from "./UserRolesModel";
 import UsersSessions from "./UsersSessionsModel";
 import ConfirmationTokens from "./ConfirmationTokensModel";

@@ -1,5 +1,5 @@
-const redis = require('redis');
-const redisClient = redis.createClient();
+const index = require('redis');
+const redisClient = index.createClient();
 
 redisClient.on('error', (err) => {
     console.log(err);

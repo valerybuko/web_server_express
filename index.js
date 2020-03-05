@@ -2,8 +2,8 @@ import express from 'express';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import sequelize from "./src/dal";
-import router from "./src/routes";
+import sequelize from "./src/DAL/Sequelize";
+import router from "./src/Controllers";
 
 const app = express();
 const PORT = 8001;

@@ -1,14 +1,14 @@
-import PasswordHelper from "../passwordHelper";
-import Users from "../dal/sequelize/UsersModel";
-import UserRoles from "../dal/sequelize/UserRolesModel";
-import UsersSessions from "../dal/sequelize/UsersSessionsModel";
+import PasswordHelperService from "./PasswordHelperService";
+import Users from "../DAL/Sequelize/UsersModel";
+import UserRoles from "../DAL/Sequelize/UserRolesModel";
+import UsersSessions from "../DAL/Sequelize/UsersSessionsModel";
 
 export default class UserService {
     constructor() {
     }
 
     addNewUser = (user) => {
-        const passwordHelper = new PasswordHelper();
+        const passwordHelper = new PasswordHelperService();
         const salt = passwordHelper.generateSalt();
         const password = passwordHelper.generateHash(user.password, salt)
         const {username, email, city, birthdate} = user;
@@ -104,7 +104,7 @@ export default class UserService {
 }
 
 /*export const addNewUser = (user) => {
-    const passwordHelper = new PasswordHelper();
+    const passwordHelper = new PasswordHelperService();
     const salt = passwordHelper.generateSalt();
     const password = passwordHelper.generateHash(user.password, salt)
     const {username, email, city, birthdate} = user;

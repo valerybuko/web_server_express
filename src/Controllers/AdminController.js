@@ -1,8 +1,8 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
-import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
-import UserService, {changedUserRole, checkAdminUserRole } from '../services/user-service';
-import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../services/company-service';
+import badRequestErrorHandler from "../Middlewares/PromiseMiddleware";
+import UserService, {changedUserRole, checkAdminUserRole } from '../Services/UserService';
+import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../Services/CompanyService';
 
 const router = express.Router();
 
@@ -27,7 +27,6 @@ export default class AdminController {
         const admin_id = req.query.admin_id;
         const id = req.query.id;
         const newUserRole = req.body.role;
-
         const role = await this.userService.checkAdminUserRole(admin_id);
 
         if(role !== 'admin') {

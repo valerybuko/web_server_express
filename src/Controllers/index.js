@@ -1,10 +1,10 @@
 import express from 'express';
-//import accountRouter from './account-routes';
-import AccountController from "./account-routes";
-import UserController from "./user-routes";
-import AdminController from "./admin-routes";
-import userRouter from './user-routes';
-import adminRoutes from './admin-routes'
+//import accountRouter from './account-Controllers';
+import AccountController from "./AccountController";
+import UserController from "./UserController";
+import AdminController from "./AdminController";
+import userRouter from './UserController';
+import adminRoutes from './AdminController'
 
 const router = express.Router();
 

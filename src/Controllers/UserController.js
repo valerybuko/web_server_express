@@ -6,10 +6,10 @@ import UserService, {
     getUserByEmail, getUserRoleByUserId,
     getUserWithID,
     updateUser
-} from "../services/user-service";
-import badRequestErrorHandler from '../middleware/BadRequestErrorHandler';
-import authorize from '../middleware/Authorization';
-import PasswordHelper from "../passwordHelper";
+} from "../Services/UserService";
+import badRequestErrorHandler from '../Middlewares/PromiseMiddleware';
+import authorize from '../Middlewares/AuthorizationMiddleware';
+import PasswordHelperService from "../Services/PasswordHelperService";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -21,7 +21,7 @@ export default class UserController {
         this.router = express.Router();
         this.initializeRoutes();
         this.userService = new UserService();
-        this.passwordHelper = new PasswordHelper();
+        this.passwordHelper = new PasswordHelperService();
     }
 
     checkValidation = () => {
