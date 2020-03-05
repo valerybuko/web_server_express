@@ -1,7 +1,7 @@
 import express from 'express';
 import HttpStatus from 'http-status-codes';
 import badRequestErrorHandler from "../middleware/BadRequestErrorHandler";
-import {changedUserRole, checkAdminUserRole } from '../services/user-service';
+import UserService, {changedUserRole, checkAdminUserRole } from '../services/user-service';
 import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../services/company-service';
 
 const router = express.Router();
@@ -12,6 +12,7 @@ export default class AdminController {
     constructor() {
         this.router = express.Router();
         this.initializeRoutes();
+        this.userService = new UserService();
     }
 
     initializeRoutes = () => {
@@ -27,13 +28,13 @@ export default class AdminController {
         const id = req.query.id;
         const newUserRole = req.body.role;
 
-        const role = await checkAdminUserRole(admin_id);
+        const role = await this.userService.checkAdminUserRole(admin_id);
 
         if(role !== 'admin') {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        await changedUserRole(newUserRole, id).catch(err => console.log(err));
+        await this.userService.changedUserRole(newUserRole, id).catch(err => console.log(err));
 
         res.status(HttpStatus.OK).send();
     }

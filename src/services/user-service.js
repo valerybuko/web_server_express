@@ -97,7 +97,7 @@ export default class UserService {
     }
 
     checkAdminUserRole = async (id) => {
-        const userRolesObject = await getUserRoleByUserId(id);
+        const userRolesObject = await this.getUserRoleByUserId(id);
         const userRole = userRolesObject.dataValues.role;
         return userRole;
     }
