@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { injectable } from 'inversify';
-import { IMailerService } from '../Domain';
+import { IMailerService, MailerModel } from '../Domain';
 
 @injectable()
 export default class MailerService implements IMailerService {
@@ -16,10 +16,10 @@ export default class MailerService implements IMailerService {
         }
     }
 
-        sendUserConfirmation = async (useremail, token) => {
+        sendUserConfirmation = async (model: MailerModel) => {
             const mailOptions = {
                 from: 'itechartgroup.valerybuko@gmail.com',
-                to: useremail,
+                to: model.email,
                 subject: 'Регистрация аккаутна',
                 html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${token}>Подтвердить регистрацию</a></h2>`
             };
@@ -27,10 +27,10 @@ export default class MailerService implements IMailerService {
             await this.mailer(mailOptions);
         }
 
-        sendPasswordConfirmation = async (useremail, token) => {
+        sendPasswordConfirmation = async (model: MailerModel) => {
             const mailOptions = {
                 from: 'itechartgroup.valerybuko@gmail.com',
-                to: useremail,
+                to: model.email,
                 subject: 'Смена пароля',
                 html: `<h2>Для смены пароля перейдите по ссылке <br/><a href=localhost:8000/updatepass?token=${token}>Подтвердить регистрацию</a></h2>`
             };
@@ -38,7 +38,7 @@ export default class MailerService implements IMailerService {
             await this.mailer(mailOptions);
         }
 
-    private mailer = async (options) => {
+    private mailer = async (options: any) => {
         const transport = await this.createTransport();
         transport.sendMail(options, function (err, info) {
             (err) ? console.log(err) : console.log(`Email sent: ${info.response}`);

@@ -12,14 +12,14 @@ import MailerService from './Services/MailerService';
 const app = express();
 const PORT = 8001;
 
-@injectable()
+
 export default class Application {
     private app: Express
     private readonly baseController: IBaseController
 
     constructor() {
       this.app = express();
-      this.baseController = Ioc.get<IBaseController>(Types.BaseController);
+      this.baseController = Ioc.get<IBaseController>(Types.BaseController); 
         /*mongoose.Promise = global.Promise;
         mongoose.connect('mongodb://localhost/Development', {
             useNewUrlParser: true,

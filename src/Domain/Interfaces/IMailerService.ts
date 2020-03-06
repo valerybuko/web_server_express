@@ -1,4 +1,6 @@
+import MailerModel from '../Models/MailModel';
+
 export default interface IMailerService {
-  sendUserConfirmation (email: string, token: string): Promise<void>;
-  sendPasswordConfirmation (email: string, token: string): Promise<void>;
+  sendUserConfirmation (model: MailerModel): Promise<void>;
+  sendPasswordConfirmation (model: MailerModel): Promise<void>;
 }

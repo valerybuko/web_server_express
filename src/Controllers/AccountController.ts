@@ -2,13 +2,13 @@ import express, { Router } from 'express';
 import 'reflect-metadata';
 import types from '../Ioc/types';
 import { inject, injectable } from 'inversify';
-import { IMailerService } from '../Domain';
+import { IMailerService, MailerModel } from '../Domain';
 import HttpStatus from 'http-status-codes';
 import UserService from "../Services/UserService";
 import AuthorizeService from "../Services/AuthService";
 import PasswordHelperService from "../Services/PasswordHelperService";
 const router = express.Router();
-const {check, validationResult} = require('express-validator/check');
+const { check, validationResult } = require('express-validator/check');
 
 @injectable()
 export default class AccountController {
@@ -31,7 +31,7 @@ export default class AccountController {
     checkValidation = () => {
         const checkingArray = [
             check('email', 'Wrong email address').normalizeEmail().isEmail(),
-            check('password', 'Enter a password with five or more characters').isLength({min: 5})
+            check('password', 'Enter a password with five or more characters').isLength({ min: 5 })
         ];
         return checkingArray;
     }
@@ -46,7 +46,7 @@ export default class AccountController {
 
     checkPasswordBeforeUpdate = () => {
         const checkingArray = [
-            check('newPassword', 'Enter a password with five or more characters').isLength({min: 5})
+            check('newPassword', 'Enter a password with five or more characters').isLength({ min: 5 })
         ];
         return checkingArray;
     }
@@ -69,10 +69,10 @@ export default class AccountController {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
+            return res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
         }
-        
-        const {userrole, username, email, salt, city, birthdate, confirmation_email} = req.body;
+
+        const { userrole, username, email, salt, city, birthdate, confirmation_email } = req.body;
 
         if (userrole !== 'user') {
             return res.status(HttpStatus.FORBIDDEN).send();
@@ -92,8 +92,10 @@ export default class AccountController {
         const newUserId = newUser.dataValues.id;
         const userRole = await this.userService.createUserRole(userrole, newUserId);
         const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
-        
-        await this.mailerService.sendUserConfirmation(confirmation_email, confirmationToken.tokenname);
+
+        const mailerModel: MailerModel = { email, token: confirmationToken }
+
+        await this.mailerService.sendUserConfirmation(mailerModel);
 
         res.status(HttpStatus.CREATED).send();
     }
@@ -124,10 +126,10 @@ export default class AccountController {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(HttpStatus.UNAUTHORIZED).json({errors: errors.array()});
+            return res.status(HttpStatus.UNAUTHORIZED).json({ errors: errors.array() });
         }
 
-        const {email, password} = req.body;
+        const { email, password } = req.body;
         const appuserObject = await this.userService.getUserByEmail(email);
 
         if (!appuserObject) {
@@ -169,11 +171,11 @@ export default class AccountController {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(HttpStatus.OK).json({errors: errors.array()});
+            return res.status(HttpStatus.OK).json({ errors: errors.array() });
         }
 
         const email = req.body.user_email;
-        const confirmationEmail = req.body.confirmation_email;
+        //const confirmationEmail = req.body.confirmation_email;
         const userObject = await this.userService.getUserByEmail(email);
 
         if (!userObject) {
@@ -194,7 +196,8 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        //await this.mailerService.sendPasswordConfirmation(confirmationEmail, token);
+        const mailerModel: MailerModel = { email: req.body.confirmation_email, token }
+        await this.mailerService.sendPasswordConfirmation({ email: req.body.confirmation_email, token });
 
         res.status(HttpStatus.OK).send();
     }
@@ -202,7 +205,7 @@ export default class AccountController {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(HttpStatus.BAD_REQUEST).json({errors: errors.array()});
+            return res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
         }
 
         const token = req.query.token;
