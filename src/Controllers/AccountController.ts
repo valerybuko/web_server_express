@@ -2,30 +2,32 @@ import express, { Router } from 'express';
 import 'reflect-metadata';
 import types from '../Ioc/types';
 import { inject, injectable } from 'inversify';
-import { IMailerService, MailerModel } from '../Domain';
+import {IAuthorizeService, IMailerService, IPasswordService, MailerModel } from '../Domain';
 import HttpStatus from 'http-status-codes';
 import UserService from "../Services/UserService";
-import AuthorizeService from "../Services/AuthService";
-import PasswordHelperService from "../Services/PasswordHelperService";
+import AuthorizeService from "../Services/AuthorizeService";
+import PasswordService from "../Services/PasswordService";
+import IUserService from "../Domain/Interfaces/IUserService";
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
 
 @injectable()
 export default class AccountController {
     router: Router;
+    REFRESH_TOKEN_SECRET: string;
     private readonly authorizeService: AuthorizeService
-    private readonly passwordService: PasswordHelperService
+    private readonly passwordService: PasswordService
     private readonly mailerService: IMailerService
     private readonly userService: UserService
 
-    constructor(@inject(types.MailerService) mailerService: IMailerService) {
+    constructor(@inject(types.MailerService) mailerService: IMailerService, @inject(types.AuthorizeService) authorizeService: IAuthorizeService, @inject(types.UserService) userService: IUserService, @inject(types.PasswordService) passwordService: IPasswordService) {
         this.router = express.Router();
-        this.authorizeService = new AuthorizeService();
-        this.userService = new UserService();
-        this.passwordService = new PasswordHelperService();
+        this.REFRESH_TOKEN_SECRET = 'abc123';
+        this.authorizeService = authorizeService;
+        this.userService = userService;
+        this.passwordService = passwordService;
         this.mailerService = mailerService;
         this.initializeRoutes();
-        console.log('==================', mailerService);
     }
 
     checkValidation = () => {
@@ -65,7 +67,7 @@ export default class AccountController {
         return router;
     }
 
-    createAccount = async (req, res) => {
+    createAccount = async (req: any, res: any) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -93,13 +95,13 @@ export default class AccountController {
         const userRole = await this.userService.createUserRole(userrole, newUserId);
         const confirmationToken = await this.authorizeService.createConfirmationToken(newUser, `${process.env.JWT_VERIFY_LIFETIME}`);
 
-        const mailerModel: MailerModel = { email, token: confirmationToken }
+        const mailerModel: MailerModel = { email: req.body.confirmation_email, token: confirmationToken }
 
         await this.mailerService.sendUserConfirmation(mailerModel);
 
         res.status(HttpStatus.CREATED).send();
     }
-    confirmAccount = async (req, res) => {
+    confirmAccount = async (req: any, res: any) => {
         const token = req.query.token;
 
         const userObject = await this.authorizeService.getConfirmationToken(token);
@@ -108,7 +110,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isValid = this.authorizeService.verifyToken(token, REFRESH_TOKEN_SECRET);
+        const isValid: boolean = this.authorizeService.verifyToken(token, this.REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
             return res.status(HttpStatus.FORBIDDEN).send();
@@ -122,7 +124,7 @@ export default class AccountController {
 
         res.status(HttpStatus.OK).send();
     }
-    loginAccount = async (req, res) => {
+    loginAccount = async (req: any, res: any) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -143,7 +145,7 @@ export default class AccountController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isCorrectPassword = this.passwordHelper.comparePassword(password, appuser.salt, appuser.password);
+        const isCorrectPassword = this.passwordService.comparePassword(password, appuser.salt, appuser.password);
         if (!isCorrectPassword) {
             res.status(HttpStatus.UNAUTHORIZED).send();
         }
@@ -160,14 +162,12 @@ export default class AccountController {
 
         res.status(HttpStatus.OK).send(tokens);
     }
-    logoutAccount = async (req, res) => {
-        const sessionDataObject = await this.authorizeService.getSessionData(req.body.id);
-        const sessionId = sessionDataObject.dataValues.id;
-        await this.authorizeService.deleteSession(sessionId);
+    logoutAccount = async (req: any, res: any) => {
+        await this.authorizeService.deleteSession(req.body.id);
         await this.userService.deleteUserSession(req.body.id);
         res.send();
     }
-    changePasswordAccount = async (req, res) => {
+    changePasswordAccount = async (req: any, res: any) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -201,7 +201,7 @@ export default class AccountController {
 
         res.status(HttpStatus.OK).send();
     }
-    updatePasswordAccount = async (req, res) => {
+    updatePasswordAccount = async (req: any, res: any) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -209,7 +209,7 @@ export default class AccountController {
         }
 
         const token = req.query.token;
-        const isValid = this.authorizeService.verifyToken(token, REFRESH_TOKEN_SECRET);
+        const isValid = this.authorizeService.verifyToken(token, this.REFRESH_TOKEN_SECRET);
 
         if (!isValid) {
             return res.status(HttpStatus.FORBIDDEN).send();
@@ -223,15 +223,15 @@ export default class AccountController {
 
         const userId = isConfirmToken.dataValues.userId;
 
-        const salt = this.passwordHelper.generateSalt();
-        const password = this.passwordHelper.generateHash(salt, req.body.newPassword);
+        const salt = this.passwordService.generateSalt();
+        const password = this.passwordService.generateHash(salt, req.body.newPassword);
         await this.userService.updateUserPassword(userId, password, salt);
 
         this.authorizeService.deleteChangePasswordToken(token);
 
         res.status(HttpStatus.OK).send('Password has been updated');
     }
-    refreshTokensAccount = async (req, res) => {
+    refreshTokensAccount = async (req: any, res: any) => {
         const token = req.body.refreshToken;
         const refreshTokenObject = await this.authorizeService.getRefreshToken(token);
 
@@ -246,13 +246,9 @@ export default class AccountController {
             return res.status(HttpStatus.BAD_REQUEST).send();
         }
 
-        const sessionDataObject = await this.authorizeService.getSessionData(userID);
-        const sessionID = sessionDataObject.dataValues.id;
-
-
         const user = userObject.dataValues;
         const refreshToken = await this.authorizeService.updateRefreshToken(user, req.body.refreshToken);
-        const accessToken = await this.authorizeService.updateAccessToken(sessionID, user, '1h');
+        const accessToken = await this.authorizeService.updateAccessToken(userID, user, '1h');
         const tokens = {
             accessToken,
             refreshToken

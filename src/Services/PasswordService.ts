@@ -1,23 +1,27 @@
 import crypto from 'crypto';
+import {injectable} from "inversify";
 
-export default class PasswordHelperService {
-    bytesSize = 16
-    encodingType = 'hex'
-    algorithmType = 'sha256'
+@injectable()
+export default class PasswordService {
+    bytesSize: number;
+    encodingType: string;
+    algorithmType: any;
 
     constructor() {
-
+        this.bytesSize = 16;
+        this.encodingType = 'hex';
+        this.algorithmType = 'sha256';
     }
 
     generateSalt = () => {
         return crypto.randomBytes(this.bytesSize).toString(this.encodingType);
     }
 
-    generateHash = (salt, password) => {
+    generateHash = (salt: string, password: string) => {
         return  crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType);
     }
 
-    comparePassword = (salt, password, hashedPassword) => {
+    comparePassword = (salt: string, password: string, hashedPassword: string) => {
         return crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType) === hashedPassword;
     }
 }

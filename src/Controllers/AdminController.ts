@@ -1,18 +1,23 @@
-import express from 'express';
+import express, { Router } from 'express';
 import HttpStatus from 'http-status-codes';
 import badRequestErrorHandler from "../Middlewares/PromiseMiddleware";
 import UserService, {changedUserRole, checkAdminUserRole } from '../Services/UserService';
 import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../Services/CompanyService';
+import {inject, injectable} from "inversify";
+import types from "../Ioc/types";
+import IUserService from "../Domain/Interfaces/IUserService";
 
 const router = express.Router();
 
+@injectable()
 export default class AdminController {
-    router;
+    router: Router;
+    userService: any;
 
-    constructor() {
+    constructor(@inject(types.UserService) userService: IUserService) {
         this.router = express.Router();
         this.initializeRoutes();
-        this.userService = new UserService();
+        this.userService = userService;
     }
 
     initializeRoutes = () => {
@@ -23,7 +28,7 @@ export default class AdminController {
         return router;
     }
 
-    changeUserRole = async (req, res) => {
+    changeUserRole = async (req: any, res: any) => {
         const admin_id = req.query.admin_id;
         const id = req.query.id;
         const newUserRole = req.body.role;
@@ -33,7 +38,7 @@ export default class AdminController {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        await this.userService.changedUserRole(newUserRole, id).catch(err => console.log(err));
+        await this.userService.changedUserRole(newUserRole, id).catch((err: any) => console.log(err));
 
         res.status(HttpStatus.OK).send();
     }

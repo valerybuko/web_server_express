@@ -1,7 +1,7 @@
 import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import RedisRepository from "../Dal/Redis/repository";
-import { checkCorrectAccessToken } from "../Services/AuthService";
+import { checkCorrectAccessToken } from "../Services/AuthorizeService";
 
 
 export default () => async (req, res, next) => {

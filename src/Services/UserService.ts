@@ -1,25 +1,27 @@
-import PasswordHelperService from "./PasswordHelperService";
+import PasswordService from "./PasswordService";
 import Users from "../Dal/MySql/Models/UsersModel";
 import UserRoles from "../Dal/MySql/Models/UserRolesModel";
 import UsersSessions from "../Dal/MySql/Models/UsersSessionsModel";
+import {injectable} from "inversify";
 
+@injectable()
 export default class UserService {
     constructor() {
     }
 
-    addNewUser = (user) => {
-        const passwordHelper = new PasswordHelperService();
+    addNewUser = (user: any) => {
+        const passwordHelper = new PasswordService();
         const salt = passwordHelper.generateSalt();
         const password = passwordHelper.generateHash(user.password, salt)
         const {username, email, city, birthdate} = user;
         return Users.create({ username, email, password, salt, city, birthdate })
     }
 
-    createUserRole = async (userrole, id) => {
+    createUserRole = async (userrole: string, id: number) => {
         return UserRoles.create({role: userrole, userId: id});
     }
 
-    changedUserRole = async (userrole, id) => {
+    changedUserRole = async (userrole: string, id: number) => {
         return UserRoles.update({ role: userrole }, {
             where: {
                 userId: id
@@ -31,15 +33,15 @@ export default class UserService {
         return Users.findAll({raw:true})
     }
 
-    getUserWithID = (id) => {
+    getUserWithID = (id: number) => {
         return Users.findByPk(id)
     }
 
-    getRoleWithID = (id) => {
+    getRoleWithID = (id: number) => {
         return UserRoles.findByPk(id)
     }
 
-    confirmUser = (id) => {
+    confirmUser = (id: number) => {
         return Users.update({ isConfirm: true }, {
             where: {
                 id
@@ -47,7 +49,7 @@ export default class UserService {
         })
     }
 
-    updateUser = (id, user, salt, password) => {
+    updateUser = (id: number, user: any, salt: string, password: string) => {
         const { username, email, role, isConfirm, city, birthdate } = user;
         return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
             where: {
@@ -56,7 +58,7 @@ export default class UserService {
         })
     }
 
-    updateUserPassword = (id, password, salt) => {
+    updateUserPassword = (id: number, password: string, salt: string) => {
         return Users.update({ password, salt }, {
             where: {
                 id
@@ -64,7 +66,7 @@ export default class UserService {
         })
     };
 
-    deleteUser = (id) => {
+    deleteUser = (id: number) => {
         return Users.destroy({
             where: {
                 id
@@ -72,7 +74,7 @@ export default class UserService {
         })
     }
 
-    deleteUserSession = (id) => {
+    deleteUserSession = (id: number) => {
         return UsersSessions.destroy({
             where: {
                 userId: id
@@ -80,7 +82,7 @@ export default class UserService {
         })
     }
 
-    getUserByEmail = (email) => {
+    getUserByEmail = (email: string) => {
         return Users.findOne({
             where: {
                 email
@@ -88,7 +90,7 @@ export default class UserService {
         });
     }
 
-    getUserRoleByUserId = (id) => {
+    getUserRoleByUserId = (id: number) => {
         return UserRoles.findOne({
             where: {
                 userId: id
@@ -96,109 +98,9 @@ export default class UserService {
         });
     }
 
-    checkAdminUserRole = async (id) => {
+    checkAdminUserRole = async (id: number) => {
         const userRolesObject = await this.getUserRoleByUserId(id);
         const userRole = userRolesObject.dataValues.role;
         return userRole;
     }
 }
-
-/*export const addNewUser = (user) => {
-    const passwordHelper = new PasswordHelperService();
-    const salt = passwordHelper.generateSalt();
-    const password = passwordHelper.generateHash(user.password, salt)
-    const {username, email, city, birthdate} = user;
-    return Users.create({ username, email, password, salt, city, birthdate })
-}
-
-export const createUserRole = async (userrole, id) => {
-    return UserRoles.create({role: userrole, userId: id});
-}
-
-export const changedUserRole = async (userrole, id) => {
-    return UserRoles.update({ role: userrole }, {
-        where: {
-            userId: id
-        }
-    });
-}
-
-export const getAllUsers = () => {
-    return Users.findAll({raw:true})
-}
-
-export const getUserWithID = (id) => {
-    return Users.findByPk(id)
-}
-
-export const getRoleWithID = (id) => {
-    return UserRoles.findByPk(id)
-}
-
-export const confirmUser = (id) => {
-    return Users.update({ isConfirm: true }, {
-        where: {
-            id
-        }
-    })
-}
-
-export const updateUser = (id, user) => {
-    const salt = generateSalt();
-    const password = generateHash(user.password, salt);
-    const { username, email, role, isConfirm, city, birthdate } = user;
-    return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
-        where: {
-            id
-        }
-    })
-}
-
-export const updateUserPassword = (id, newPassword) => {
-    const salt = generateSalt();
-    const password = generateHash(newPassword, salt);
-
-    return Users.update({ password, salt }, {
-        where: {
-            id
-        }
-    })
-};
-
-export const deleteUser = (id) => {
-    return Users.destroy({
-        where: {
-            id
-        }
-    })
-}
-
-export const deleteUserSession = (id) => {
-    return UsersSessions.destroy({
-        where: {
-            userId: id
-        }
-    })
-}
-
-export const getUserByEmail = (email) => {
-    return Users.findOne({
-        where: {
-            email
-        }
-    });
-}
-
-export const getUserRoleByUserId = (id) => {
-    return UserRoles.findOne({
-        where: {
-            userId: id
-        }
-    });
-}
-
-export const checkAdminUserRole = async (id) => {
-    const userRolesObject = await getUserRoleByUserId(id);
-    const userRole = userRolesObject.dataValues.role;
-    return userRole;
-}*/

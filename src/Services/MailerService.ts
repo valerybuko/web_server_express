@@ -1,42 +1,43 @@
 import nodemailer from 'nodemailer';
-import { injectable } from 'inversify';
-import { IMailerService, MailerModel } from '../Domain';
+import {injectable} from 'inversify';
+import {IMailerService, MailerModel} from '../Domain';
 
 @injectable()
 export default class MailerService implements IMailerService {
     constructor() {
-        this.createTransport = async () => {
-            return nodemailer.createTransport({
-                service: `${process.env.MAIL_SERVICE}`,
-                auth: {
-                    user: `${process.env.COMPANY_EMAIL}`,
-                    pass: `${process.env.COMPANY_PASSWORD}`
-                }
-            });
-        }
     }
 
-        sendUserConfirmation = async (model: MailerModel) => {
-            const mailOptions = {
-                from: 'itechartgroup.valerybuko@gmail.com',
-                to: model.email,
-                subject: 'Регистрация аккаутна',
-                html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${token}>Подтвердить регистрацию</a></h2>`
-            };
+    private createTransport = async () => {
+        return nodemailer.createTransport({
+            service: `${process.env.MAIL_SERVICE}`,
+            auth: {
+                user: `${process.env.COMPANY_EMAIL}`,
+                pass: `${process.env.COMPANY_PASSWORD}`
+            }
+        });
+    }
 
-            await this.mailer(mailOptions);
-        }
+    sendUserConfirmation = async (model: MailerModel) => {
+        const mailOptions = {
+            from: 'itechartgroup.valerybuko@gmail.com',
+            to: model.email,
+            subject: 'Регистрация аккаутна',
+            html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${model.token}>Подтвердить регистрацию</a></h2>`
+        };
 
-        sendPasswordConfirmation = async (model: MailerModel) => {
-            const mailOptions = {
-                from: 'itechartgroup.valerybuko@gmail.com',
-                to: model.email,
-                subject: 'Смена пароля',
-                html: `<h2>Для смены пароля перейдите по ссылке <br/><a href=localhost:8000/updatepass?token=${token}>Подтвердить регистрацию</a></h2>`
-            };
+        await this.mailer(mailOptions);
+    }
 
-            await this.mailer(mailOptions);
-        }
+    sendPasswordConfirmation = async (model: MailerModel) => {
+        const mailOptions = {
+            from: 'itechartgroup.valerybuko@gmail.com',
+            to: model.email,
+            subject: 'Смена пароля',
+            html: `<h2>Для смены пароля перейдите по ссылке <br/><a href=localhost:8000/updatepass?token=${model.token}>Подтвердить регистрацию</a></h2>`
+        };
+
+        await this.mailer(mailOptions);
+    }
 
     private mailer = async (options: any) => {
         const transport = await this.createTransport();

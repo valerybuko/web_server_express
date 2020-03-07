@@ -1,27 +1,28 @@
-import express from 'express';
+import express, { Router } from 'express';
 import HttpStatus from 'http-status-codes';
-import UserService, {
-    deleteUser,
-    getAllUsers,
-    getUserByEmail, getUserRoleByUserId,
-    getUserWithID,
-    updateUser
-} from "../Services/UserService";
+import UserService from "../Services/UserService";
 import badRequestErrorHandler from '../Middlewares/PromiseMiddleware';
 import authorize from '../Middlewares/AuthorizationMiddleware';
-import PasswordHelperService from "../Services/PasswordHelperService";
+import PasswordService from "../Services/PasswordService";
+import {inject, injectable} from "inversify";
+import types from "../Ioc/types";
+import IUserService from "../Domain/Interfaces/IUserService";
+import {IPasswordService} from "../Domain";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
 
+@injectable()
 export default class UserController {
-    router;
+    router: Router;
+    userService: any;
+    passwordService: any;
 
-    constructor() {
+    constructor(@inject(types.UserService) userService: IUserService, @inject(types.PasswordService) passwordService: IPasswordService) {
         this.router = express.Router();
         this.initializeRoutes();
-        this.userService = new UserService();
-        this.passwordHelper = new PasswordHelperService();
+        this.userService = userService;
+        this.passwordService = passwordService;
     }
 
     checkValidation = () => {
@@ -51,7 +52,7 @@ export default class UserController {
         return router;
     }
 
-    getUsers = async (req, res) => {
+    getUsers = async (req: any, res: any) => {
         const allUsers = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
@@ -61,7 +62,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(allUsers);
     }
 
-    getUser = async (req, res) => {
+    getUser = async (req: any, res: any) => {
         const user = await this.userService.getUserWithID(req.query.id);
 
         if (!user) {
@@ -71,7 +72,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    getEmail = async (req, res) => {
+    getEmail = async (req: any, res: any) => {
         const user = await this.userService.getUserByEmail(req.body.email);
 
         if (!user) {
@@ -81,7 +82,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    updateUser = async (req, res) => {
+    updateUser = async (req: any, res: any) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -93,8 +94,8 @@ export default class UserController {
         const role = userRoleObject.dataValues.role;
 
         if (role === 'admin') {
-            const salt = this.passwordHelper.generateSalt();
-            const password = this.passwordHelper.generateHash(req.body.password, salt);
+            const salt = this.passwordService.generateSalt();
+            const password = this.passwordService.generateHash(req.body.password, salt);
             await this.userService.updateUser(req.body.id, req.body, salt, password);
         }
 
@@ -102,15 +103,15 @@ export default class UserController {
             if (req.body.id) {
                 return res.status(HttpStatus.FORBIDDEN).send();
             }
-            const salt = this.passwordHelper.generateSalt();
-            const password = this.passwordHelper.generateHash(req.body.password, salt);
+            const salt = this.passwordService.generateSalt();
+            const password = this.passwordService.generateHash(req.body.password, salt);
             await this.userService.updateUser(userId, req.body, salt, password);
         }
 
         res.status(HttpStatus.OK).send();
     }
 
-    deleteUser = async (req, res) => {
+    deleteUser = async (req: any, res: any) => {
         await this.userService.deleteUser(req.query.id);
 
         res.status(HttpStatus.OK).send();

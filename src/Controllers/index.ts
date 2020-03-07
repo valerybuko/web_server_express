@@ -13,10 +13,10 @@ export default class BaseController implements IBaseController {
     private readonly adminController: any
     router: Router
 
-    constructor(@inject(types.AccountController) accountController: IAccountController) {
+    constructor(@inject(types.AccountController) accountController: IAccountController, @inject(types.UserController) userController: UserController) {
         this.router = express.Router();
         this.accountController = accountController;
-        this.userController = new UserController();
+        this.userController = userController;
         this.adminController = new AdminController();
         this.initializeRoutes()
     }
