@@ -11,8 +11,8 @@ const {check, validationResult} = require('express-validator/check');
 @injectable()
 export default class UserController {
     router: Router;
-    userService: any;
-    passwordService: any;
+    userService: IUserService;
+    passwordService: IPasswordService;
 
     constructor(@inject(types.UserService) userService: IUserService,
                 @inject(types.PasswordService) passwordService: IPasswordService) {

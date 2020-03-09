@@ -10,9 +10,9 @@ export default class UserService {
     }
 
     addNewUser = (user: any) => {
-        const passwordHelper = new PasswordService();
-        const salt = passwordHelper.generateSalt();
-        const password = passwordHelper.generateHash(user.password, salt)
+        const passwordService = new PasswordService(); // delete new
+        const salt = passwordService.generateSalt();
+        const password = passwordService.generateHash(salt, user.password)
         const {username, email, city, birthdate} = user;
         return Users.create({ username, email, password, salt, city, birthdate })
     }

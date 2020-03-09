@@ -2,23 +2,22 @@ import express, { Router, Response, Request } from 'express';
 import 'reflect-metadata';
 import types from '../Ioc/types';
 import { inject, injectable } from 'inversify';
-import {IAuthorizeService, IMailerService, IPasswordService, MailerModel } from '../Domain';
+import {IAuthorizeService, IMailerService, IPasswordService, MailerModel, IUserService } from '../Domain';
 import HttpStatus from 'http-status-codes';
-import UserService from "../Services/UserService";
-import AuthorizeService from "../Services/AuthorizeService";
-import PasswordService from "../Services/PasswordService";
-import IUserService from "../Domain/Interfaces/IUserService";
-const router = express.Router();
+import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
+import AuthorizationMiddleware from "../Middlewares/AuthorizationMiddleware";
 const { check, validationResult } = require('express-validator/check');
+
+const router = express.Router();
 
 @injectable()
 export default class AccountController {
     router: Router;
     REFRESH_TOKEN_SECRET: string;
-    private readonly authorizeService: AuthorizeService
-    private readonly passwordService: PasswordService
+    private readonly authorizeService: IAuthorizeService
+    private readonly passwordService: IPasswordService
     private readonly mailerService: IMailerService
-    private readonly userService: UserService
+    private readonly userService: IUserService
 
     constructor(@inject(types.MailerService) mailerService: IMailerService,
                 @inject(types.AuthorizeService) authorizeService: IAuthorizeService,
@@ -59,7 +58,7 @@ export default class AccountController {
     private initializeRoutes = () => {
         const path = '/api/account';
 
-        this.router.post(`${path}/create`, this.checkValidation(), this.createAccount);
+        this.router.post(`${path}/create`, this.checkValidation(), AuthorizationMiddleware(), PromiseMiddleware(this.createAccount));
         this.router.put(`${path}/confirm`, this.confirmAccount);
         this.router.post(`${path}/login`, this.checkValidation(), this.loginAccount);
         this.router.post(`${path}/logout`, this.logoutAccount);
@@ -142,19 +141,17 @@ export default class AccountController {
         }
 
         const appuser = appuserObject.dataValues;
-        console.log('======Password====', password);
-        console.log('=====App User===', appuser);
         const isUserConfirm = appuser.isConfirm;
 
         if (!isUserConfirm) {
             return res.status(HttpStatus.FORBIDDEN).send();
         }
 
-        const isCorrectPassword = this.passwordService.comparePassword(password, appuser.salt, appuser.password);
+        const isCorrectPassword = this.passwordService.comparePassword(appuser.salt, password, appuser.password);
         if (!isCorrectPassword) {
-            res.status(HttpStatus.UNAUTHORIZED).send();
+            return res.status(HttpStatus.UNAUTHORIZED).send();
         }
-
+        console.log('===Is Correct', isCorrectPassword);
         const refreshToken = await this.authorizeService.createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
         const userSessionNumber = refreshToken.dataValues.id;
 

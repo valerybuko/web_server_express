@@ -9,7 +9,7 @@ const router = express.Router();
 @injectable()
 export default class AdminController {
     router: Router;
-    userService: any;
+    userService: IUserService;
 
     constructor(@inject(types.UserService) userService: IUserService) {
         this.router = express.Router();
