@@ -17,12 +17,23 @@ export default class MailerService implements IMailerService {
         });
     }
 
-    sendUserConfirmation = async (model: MailerModel) => {
+    sendUserInitialConfirmation = async (model: MailerModel) => {
         const mailOptions = {
             from: 'itechartgroup.valerybuko@gmail.com',
             to: model.email,
             subject: 'Регистрация аккаутна',
             html: `<h1>Регистрация Вашего аккаунта прошла успешно</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${model.token}>Подтвердить регистрацию</a></h2>`
+        };
+
+        await this.mailer(mailOptions);
+    }
+
+    sendUserChangePasswordConfirmation = async (model: MailerModel) => {
+        const mailOptions = {
+            from: 'itechartgroup.valerybuko@gmail.com',
+            to: model.email,
+            subject: 'Смена пароля',
+            html: `<h1>Смена пароля</h1><h2>Для подтверждения перейдите по ссылке <br/><a href=localhost:8000/confirm?token=${model.token}>Подтвердить смену пароля</a></h2>`
         };
 
         await this.mailer(mailOptions);

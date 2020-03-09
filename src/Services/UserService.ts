@@ -49,6 +49,14 @@ export default class UserService {
         })
     }
 
+    unconfirmUser = (id: number) => {
+        return Users.update({ isConfirm: false }, {
+            where: {
+                id
+            }
+        })
+    }
+
     updateUser = (id: number, user: any, salt: string, password: string) => {
         const { username, email, role, isConfirm, city, birthdate } = user;
         return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {

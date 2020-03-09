@@ -1,5 +1,4 @@
-import { Router } from 'express';
-import QueryModel from "../Models/QueryModel";
+import { Router, Request, Response } from 'express';
 
 export default interface IAccountController {
   router: Router;
@@ -7,11 +6,11 @@ export default interface IAccountController {
   checkEmailBeforePasswordReset (): any;
   checkPasswordBeforeUpdate (): any;
   initializeRoutes (): any;
-  createAccount (model: QueryModel): any;
-  confirmAccount (model: QueryModel): any;
-  loginAccount (model: QueryModel): any;
-  logoutAccount (model: QueryModel): any;
-  changePasswordAccount (model: QueryModel): any;
-  updatePasswordAccount (model: QueryModel): any;
-  refreshTokensAccount (model: QueryModel): any;
+  createAccount (req: Request, res: Response): any;
+  confirmAccount (req: Request, res: Response): any;
+  loginAccount (req: Request, res: Response): any;
+  logoutAccount (req: Request, res: Response): any;
+  changePasswordAccount (req: Request, res: Response): any;
+  updatePasswordAccount (req: Request, res: Response): any;
+  refreshTokensAccount (req: Request, res: Response): any;
 }

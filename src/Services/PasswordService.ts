@@ -22,6 +22,6 @@ export default class PasswordService {
     }
 
     comparePassword = (salt: string, password: string, hashedPassword: string) => {
-        return crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType) === hashedPassword;
+        return this.generateHash(salt, password) === hashedPassword;
     }
 }

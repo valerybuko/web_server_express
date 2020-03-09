@@ -6,6 +6,7 @@ export default interface IMailerService {
   getUserWithID(id: number): any;
   getRoleWithID(id: number): any;
   confirmUser(id: number): any;
+  unconfirmUser(id: number): any;
   updateUser (id: number, user: any, salt: string, password: string): any;
   updateUserPassword (id: number, password: string, salt: string): any;
   deleteUser(id: number): any;

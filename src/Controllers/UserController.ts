@@ -1,9 +1,5 @@
-import express, { Router } from 'express';
+import express, {Request, Response, Router} from 'express';
 import HttpStatus from 'http-status-codes';
-import UserService from "../Services/UserService";
-import badRequestErrorHandler from '../Middlewares/PromiseMiddleware';
-import authorize from '../Middlewares/AuthorizationMiddleware';
-import PasswordService from "../Services/PasswordService";
 import {inject, injectable} from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
@@ -18,14 +14,15 @@ export default class UserController {
     userService: any;
     passwordService: any;
 
-    constructor(@inject(types.UserService) userService: IUserService, @inject(types.PasswordService) passwordService: IPasswordService) {
+    constructor(@inject(types.UserService) userService: IUserService,
+                @inject(types.PasswordService) passwordService: IPasswordService) {
         this.router = express.Router();
         this.initializeRoutes();
         this.userService = userService;
         this.passwordService = passwordService;
     }
 
-    checkValidation = () => {
+    private checkValidation = () => {
         const checkingArray = [
             check('email', 'Wrong email address').normalizeEmail().isEmail(),
             check('password', 'Enter a password with five or more characters').isLength({min: 5})
@@ -33,14 +30,14 @@ export default class UserController {
         return checkingArray;
     }
 
-    checkEmail = () => {
+    private checkEmail = () => {
         const checkingArray = [
             check('email', 'Wrong email address').normalizeEmail().isEmail(),
         ];
         return checkingArray;
     }
 
-    initializeRoutes = () => {
+    private initializeRoutes = () => {
         const path = '/api/users';
 
         this.router.get(path, this.checkValidation(), this.getUsers);
@@ -52,7 +49,7 @@ export default class UserController {
         return router;
     }
 
-    getUsers = async (req: any, res: any) => {
+    getUsers = async (req: Request, res: Response) => {
         const allUsers = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
@@ -62,7 +59,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(allUsers);
     }
 
-    getUser = async (req: any, res: any) => {
+    getUser = async (req: Request, res: Response) => {
         const user = await this.userService.getUserWithID(req.query.id);
 
         if (!user) {
@@ -72,7 +69,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    getEmail = async (req: any, res: any) => {
+    getEmail = async (req: Request, res: Response) => {
         const user = await this.userService.getUserByEmail(req.body.email);
 
         if (!user) {
@@ -82,7 +79,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    updateUser = async (req: any, res: any) => {
+    updateUser = async (req: Request, res: Response) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -111,7 +108,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send();
     }
 
-    deleteUser = async (req: any, res: any) => {
+    deleteUser = async (req: Request, res: Response) => {
         await this.userService.deleteUser(req.query.id);
 
         res.status(HttpStatus.OK).send();

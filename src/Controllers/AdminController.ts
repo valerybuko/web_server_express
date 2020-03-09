@@ -1,8 +1,5 @@
-import express, { Router } from 'express';
+import express, { Router, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import badRequestErrorHandler from "../Middlewares/PromiseMiddleware";
-import UserService, {changedUserRole, checkAdminUserRole } from '../Services/UserService';
-import {addNewPlans, deletePlan, getCompanyPlans, getCompanyPlansWithID, updatePlan} from '../Services/CompanyService';
 import {inject, injectable} from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
@@ -20,7 +17,7 @@ export default class AdminController {
         this.userService = userService;
     }
 
-    initializeRoutes = () => {
+    private initializeRoutes = () => {
         const path = '/api/admin';
 
         this.router.put(`${path}/change`, this.changeUserRole);
@@ -28,7 +25,7 @@ export default class AdminController {
         return router;
     }
 
-    changeUserRole = async (req: any, res: any) => {
+    changeUserRole = async (req: Request, res: Response) => {
         const admin_id = req.query.admin_id;
         const id = req.query.id;
         const newUserRole = req.body.role;
