@@ -89,7 +89,7 @@ export default class UserController implements IUserController{
         }
 
         const userId = req.query.id;
-        const userRoleObject = await this.userService.getUserRoleByUserId(userId);
+        const userRoleObject: any = await this.userService.getUserRoleByUserId(userId);
 
         if(!userRoleObject) {
             return res.status(HttpStatus.BAD_REQUEST).send();

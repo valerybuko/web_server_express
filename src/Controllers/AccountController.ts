@@ -143,7 +143,7 @@ export default class AccountController implements IAccountController {
         }
 
         const { email, password } = req.body;
-        const appuserObject = await this.userService.getUserByEmail(email);
+        const appuserObject: any = await this.userService.getUserByEmail(email);
 
         if (!appuserObject) {
             return res.status(HttpStatus.UNAUTHORIZED).send();
@@ -187,7 +187,7 @@ export default class AccountController implements IAccountController {
 
         const email = req.body.user_email;
         //const confirmationEmail = req.body.confirmation_email;
-        const userObject = await this.userService.getUserByEmail(email);
+        const userObject: any = await this.userService.getUserByEmail(email);
 
         if (!userObject) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -199,7 +199,7 @@ export default class AccountController implements IAccountController {
             return res.status(HttpStatus.UNAUTHORIZED).send();
         }
 
-        const changePasswordTokenObject = await this.authorizeService.createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`);
+        const changePasswordTokenObject: any = await this.authorizeService.createChangePasswordToken(user, `${process.env.JWT_VERIFY_LIFETIME}`);
         const token = changePasswordTokenObject.dataValues.tokenname;
 
 
@@ -233,7 +233,7 @@ export default class AccountController implements IAccountController {
         }
 
         const userId = isConfirmToken.userId;
-        const newUserObject = await this.userService.getUserWithID(userId);
+        const newUserObject: any = await this.userService.getUserWithID(userId);
 
         if (!newUserObject) {
             return res.status(HttpStatus.BAD_REQUEST).send();
@@ -266,7 +266,7 @@ export default class AccountController implements IAccountController {
         }
 
         const userID = refreshTokenObject.userId;
-        const userObject = await this.userService.getUserWithID(userID);
+        const userObject: any = await this.userService.getUserWithID(userID);
 
         if (!userObject) {
             return res.status(HttpStatus.BAD_REQUEST).send();

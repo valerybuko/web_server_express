@@ -19,6 +19,6 @@ export default interface IAuthorizeService {
   getChangePasswordToken (token: string): Promise<PasswordTokenEntity>;
   saveSessionToRedis (user: UserModel, tokentimelife: string, index: number): Promise<string>;
   updateAccessToken (sessionID: number ,user: any, tokentimelife: string): Promise<string>;
-  verifyToken (token: string, REFRESH_TOKEN_SECRET: string): Promise<boolean>;deleteSession (id: number): Promise<void>;
+  verifyToken (token: string, REFRESH_TOKEN_SECRET: string | undefined): Promise<boolean>;deleteSession (id: number): Promise<void>;
   getSessionData (id: number): Promise<UsersSessionsEntity>
 }

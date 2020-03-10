@@ -116,7 +116,7 @@ export default class AuthorizeService implements IAuthorizeService {
         return token;
     }
 
-    verifyToken = async (token: string, REFRESH_TOKEN_SECRET: string): Promise<boolean> => {
+    verifyToken = async (token: string, REFRESH_TOKEN_SECRET: string | undefined): Promise<boolean> => {
         const  isVerified = await jwt.verify(token, this.REFRESH_TOKEN_SECRET);
         return typeof isVerified === "object";
     };
