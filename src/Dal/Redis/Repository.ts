@@ -1,9 +1,10 @@
 import redisClient from "./index";
 import UserModel from "../../Domain/Models/UserModel";
 import {inject, injectable} from "inversify";
+import {IRedisRepository} from "../../Domain";
 
 @injectable()
-export default class RedisRepository {
+export default class RedisRepository implements IRedisRepository{
     constructor() {
     }
 
@@ -13,7 +14,7 @@ export default class RedisRepository {
     }
 
     checkCorrectAccessToken = async (userId: number, token: string): Promise<object | boolean> => {
-        const zrange = (id: string, start: number, end: number): Promise<object | Array<string> | undefined> => new Promise((resolve, reject) => {
+        const zrange = (id: string, start: number, end: number): Promise<any> => new Promise((resolve, reject) => {
             redisClient.zrange(id, start, end, (err: object, value: object | Array<string> | undefined) => {
                 if (err) {
                     reject(err);
@@ -22,7 +23,7 @@ export default class RedisRepository {
                 }
             });
         });
-        const tokensArray = await zrange(`user${userId}`, 0, -1);
+        const tokensArray: any = await zrange(`user${userId}`, 0, -1);
 
         if (!tokensArray.includes(token)) {
             return false
@@ -31,7 +32,7 @@ export default class RedisRepository {
         }
     }
 
-    deleteSession = async (sessionID: number): Promise<void> => {
+    deleteSession = async (sessionID: string | number): Promise<any> => {
         await redisClient.del(sessionID);
     }
 }
