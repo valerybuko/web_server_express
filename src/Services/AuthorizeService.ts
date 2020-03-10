@@ -3,18 +3,19 @@ import jwt from 'jsonwebtoken';
 import redisClient from "../Dal/Redis";
 import ConfirmationTokens from "../Dal/MySql/Models/ConfirmationTokensModel";
 import ChangePasswordTokens from "../Dal/MySql/Models/ChangePasswordTokensModel";
-import { inject, injectable } from "inversify";
+import {inject, injectable} from "inversify";
 import UserModel from "../Domain/Models/UserModel";
 import types from "../Ioc/types";
-import { IRedisRepository } from "../Domain";
+import {IAuthorizeService, IRedisRepository} from "../Domain";
 import UsersSessionsEntity from "../Domain/Entities/UsersSessionsEntity";
 import ConfirmationTokenEntity from "../Domain/Entities/ConfirmationTokenEntity";
 import PasswordTokenEntity from "../Domain/Entities/PasswordTokenEntity";
 
+
 @injectable()
-export default class AuthorizeService {
-    REFRESH_TOKEN_SECRET: string | undefined;
-    redisRepository: any
+export default class AuthorizeService implements IAuthorizeService {
+    REFRESH_TOKEN_SECRET: any;
+    redisRepository: IRedisRepository;
 
     constructor(@inject(types.RedisRepository) redisRepository: IRedisRepository) {
         this.redisRepository = redisRepository;
@@ -56,7 +57,7 @@ export default class AuthorizeService {
     updateRefreshToken = async (user: UserModel, refToken: string): Promise<string> => {
         const token = await this.generateJWT(user, `${process.env.JWT_REFRESH_LIFETIME}`);
 
-        await UsersSessions.update({ tokenname: token, userId: user.id }, {
+        await UsersSessions.update({tokenname: token, userId: user.id}, {
             where: {
                 tokenname: refToken
             }
@@ -67,12 +68,12 @@ export default class AuthorizeService {
 
     createConfirmationToken = async (user: UserModel, tokentimelife: string): Promise<ConfirmationTokenEntity> => {
         const token = await this.generateConfirmationToken(user, tokentimelife);
-        return ConfirmationTokens.create({ tokenname: token, userId: user.id});
+        return ConfirmationTokens.create({tokenname: token, userId: user.id});
     }
 
     createChangePasswordToken = async (user: UserModel, tokentimelife: string): Promise<PasswordTokenEntity> => {
         const token = await this.generateConfirmationToken(user, tokentimelife);
-        return  ChangePasswordTokens.create({ tokenname: token, userId: user.id });
+        return ChangePasswordTokens.create({tokenname: token, userId: user.id});
     }
 
     getRefreshToken = async (token: string): Promise<UsersSessionsEntity> => {
@@ -108,14 +109,14 @@ export default class AuthorizeService {
         return token;
     }
 
-    updateAccessToken = async (sessionID: number ,user: any, tokentimelife: string): Promise<string> => {
+    updateAccessToken = async (sessionID: number, user: any, tokentimelife: string): Promise<string> => {
         await this.redisRepository.deleteSession(`user${sessionID}`);
         const token = await this.generateJWT(user, tokentimelife);
         await this.redisRepository.recodeHashToRedis(redisClient, user, user.id, token);
         return token;
     }
 
-    verifyToken = (token :string, REFRESH_TOKEN_SECRET: string): Promise<Error | boolean> => jwt.verify(token, this.REFRESH_TOKEN_SECRET, (err) => {
+    verifyToken = (token: string, REFRESH_TOKEN_SECRET: string): Promise<any> => jwt.verify(token, this.REFRESH_TOKEN_SECRET, (err) => {
         if (err) {
             return err
         } else {

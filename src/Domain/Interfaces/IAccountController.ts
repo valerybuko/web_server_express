@@ -1,18 +1,14 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import LoginTokensModel from "../Models/LoginTokensModel";
 import ReqResModel from "../Models/ReqResModel";
 
 export default interface IAccountController {
   router: Router;
-  checkValidation (): Array<string | undefined>;
-  checkEmailBeforePasswordReset (): Array<string | undefined>;
-  checkPasswordBeforeUpdate (): Array<string | undefined>;
-  initializeRoutes (): Router;
-  createAccount (model: ReqResModel): Promise<void>;
-  confirmAccount (model: ReqResModel): void;
-  loginAccount (model: ReqResModel): LoginTokensModel;
-  logoutAccount (model: ReqResModel): Promise<void>;
-  changePasswordAccount (model: ReqResModel): Promise<void>;
-  updatePasswordAccount (model: ReqResModel): Promise<void>;
-  refreshTokensAccount (model: ReqResModel): LoginTokensModel;
+  createAccount (req: Request, res: Response): Promise<any>;
+  confirmAccount (req: Request, res: Response): Promise<any>;
+  loginAccount (req: Request, res: Response): Promise<any>;
+  logoutAccount (req: Request, res: Response): Promise<void>;
+  changePasswordAccount (req: Request, res: Response): Promise<any>;
+  updatePasswordAccount (req: Request, res: Response): Promise<any>;
+  refreshTokensAccount (req: Request, res: Response): Promise<any>;
 }

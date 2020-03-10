@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import { injectable } from "inversify";
+import {IPasswordService} from "../Domain";
 
 @injectable()
-export default class PasswordService {
+export default class PasswordService implements IPasswordService{
     bytesSize: number;
     encodingType: any;
     algorithmType: any;

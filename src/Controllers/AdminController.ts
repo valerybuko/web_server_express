@@ -4,11 +4,12 @@ import { inject, injectable } from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
 import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
+import IAdminController from "../Domain/Interfaces/IAdminController";
 
 const router = express.Router();
 
 @injectable()
-export default class AdminController {
+export default class AdminController implements IAdminController {
     router: Router;
     userService: IUserService;
 
@@ -26,7 +27,7 @@ export default class AdminController {
         return router;
     }
 
-    changeUserRole = async (req: Request, res: Response) => {
+    changeUserRole = async (req: Request, res: Response): Promise<any> => {
         const admin_id = req.query.admin_id;
         const id = req.query.id;
         const newUserRole = req.body.role;

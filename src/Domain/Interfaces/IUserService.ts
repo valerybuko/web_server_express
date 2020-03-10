@@ -1,8 +1,8 @@
 import UserEntity from "../Entities/UserEntity";
 import UserRoleEntity from "../Entities/UserRoleEntity";
 
-export default interface IMailerService {
-  addNewUser (user: UserEntity): Promise<UserEntity | undefined>;
+export default interface IUserService {
+  addNewUser (user: UserEntity): Promise<UserEntity>;
   createUserRole (userrole: string, id: number): Promise<UserRoleEntity | undefined>;
   changedUserRole (userrole: string, id: number): Promise<UserRoleEntity | undefined>;
   getAllUsers (): Promise<UserEntity | undefined>;

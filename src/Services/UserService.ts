@@ -2,16 +2,17 @@ import PasswordService from "./PasswordService";
 import Users from "../Dal/MySql/Models/UsersModel";
 import UserRoles from "../Dal/MySql/Models/UserRolesModel";
 import UsersSessions from "../Dal/MySql/Models/UsersSessionsModel";
-import { injectable } from "inversify";
+import {inject, injectable} from "inversify";
 import UserEntity from "../Domain/Entities/UserEntity";
 import UserRoleEntity from "../Domain/Entities/UserRoleEntity";
+import {IUserService} from "../Domain";
 
 @injectable()
-export default class UserService {
+export default class UserService implements IUserService{
     constructor() {
     }
 
-    addNewUser = (user: UserEntity): Promise<UserEntity | undefined> => {
+    addNewUser = (user: UserEntity): Promise<UserEntity> => {
         const passwordService = new PasswordService(); // delete new
         const salt = passwordService.generateSalt();
         const password = passwordService.generateHash(salt, user.password)

@@ -1,8 +1,6 @@
-import { Router } from 'express';
-import ReqResModel from "../Models/ReqResModel";
+import { Router, Request, Response } from 'express';
 
 export default interface IAccountController {
   router: Router;
-  initializeRoutes (): Router;
-  changeUserRole (model: ReqResModel): Promise<void>;
+  changeUserRole (req: Request, res: Response): Promise<any>;
 }

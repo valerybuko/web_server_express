@@ -3,16 +3,15 @@ import HttpStatus from 'http-status-codes';
 import { inject, injectable } from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
-import { IPasswordService } from "../Domain";
+import {IPasswordService, IUserController} from "../Domain";
 import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
 import AuthorizationMiddleware from "../Middlewares/AuthorizationMiddleware";
-import UserEntity from "../Domain/Entities/UserEntity";
 
 const router = express.Router();
 const { check, validationResult } = require('express-validator/check');
 
 @injectable()
-export default class UserController {
+export default class UserController implements IUserController{
     router: Router;
     userService: IUserService;
     passwordService: IPasswordService;
@@ -53,7 +52,7 @@ export default class UserController {
     }
 
     getUsers = async (req: Request, res: Response): Promise<any> => {
-        const allUsers: object | undefined = await this.userService.getAllUsers();
+        const allUsers: any = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
             return res.status(HttpStatus.NOT_FOUND).send();

@@ -8,6 +8,11 @@ import IUserService from "./Interfaces/IUserService";
 import IPasswordService from "./Interfaces/IPasswordService";
 import IAdminController from "./Interfaces/IAdminController";
 import IRedisRepository from "./Interfaces/IRedisRepository";
+import UserEntity from "./Entities/UserEntity";
+import UserRoleEntity from "./Entities/UserRoleEntity";
+import UsersSessionsEntity from "./Entities/UsersSessionsEntity";
+import ConfirmationTokenEntity from "./Entities/ConfirmationTokenEntity";
+import PasswordTokenEntity from "./Entities/PasswordTokenEntity";
 
 export {
     IBaseController,
@@ -19,5 +24,10 @@ export {
     IUserService,
     IPasswordService,
     IAdminController,
-    IRedisRepository
+    IRedisRepository,
+    UserEntity,
+    UserRoleEntity,
+    UsersSessionsEntity,
+    ConfirmationTokenEntity,
+    PasswordTokenEntity
 }
