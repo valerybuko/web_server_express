@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import sequelize from "./index";
+import sequelize from './index';
 
 export const ConfirmationTokensModel = sequelize.define('confirmation_tokens', {
     tokenname: {

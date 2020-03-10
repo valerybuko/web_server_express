@@ -1,8 +1,6 @@
 import redisClient from "./index";
 import UserModel from "../../Domain/Models/UserModel";
 import {inject, injectable} from "inversify";
-import types from "../../Ioc/types";
-import IUserService from "../../Domain/Interfaces/IUserService";
 
 @injectable()
 export default class RedisRepository {

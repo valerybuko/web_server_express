@@ -10,7 +10,7 @@ export default interface IMailerService {
   getRoleWithID(id: number): Promise<UserEntity | undefined>;
   confirmUser(id: number): Promise<UserEntity | undefined>;
   unconfirmUser(id: number): Promise<UserEntity | undefined>;
-  updateUser (id: number, user: UserEntity, salt: string, password: string): any;
+  updateUser (id: number, user: UserEntity, salt: string, password: string): Promise<UserEntity | undefined>;
   updateUserPassword (id: number, password: string, salt: string): Promise<UserEntity | undefined>;
   deleteUser(id: number): Promise<UserEntity | undefined>;
   deleteUserSession(id: number): Promise<number>;

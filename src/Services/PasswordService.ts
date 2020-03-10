@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import {injectable} from "inversify";
+import { injectable } from "inversify";
 
 @injectable()
 export default class PasswordService {

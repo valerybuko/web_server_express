@@ -1,12 +1,15 @@
-import express, {Request, Response, Router} from 'express';
+import express, { Request, Response, Router } from 'express';
 import HttpStatus from 'http-status-codes';
 import { inject, injectable } from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
 import { IPasswordService } from "../Domain";
+import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
+import AuthorizationMiddleware from "../Middlewares/AuthorizationMiddleware";
+import UserEntity from "../Domain/Entities/UserEntity";
 
 const router = express.Router();
-const {check, validationResult} = require('express-validator/check');
+const { check, validationResult } = require('express-validator/check');
 
 @injectable()
 export default class UserController {
@@ -40,17 +43,17 @@ export default class UserController {
     private initializeRoutes = () => {
         const path = '/api/users';
 
-        this.router.get(path, this.checkValidation(), this.getUsers);
-        this.router.get(`${path}/user`, this.getUser);
-        this.router.get(`${path}/email`, this.checkEmail(), this.getEmail);
-        this.router.put(`${path}/user`, this.checkValidation(), this.updateUser);
-        this.router.delete(`${path}/user`, this.deleteUser);
+        this.router.get(path, this.checkValidation(), PromiseMiddleware(this.getUsers));
+        this.router.get(`${path}/user`, PromiseMiddleware(this.getUser));
+        this.router.get(`${path}/email`, this.checkEmail(), PromiseMiddleware(this.getEmail));
+        this.router.put(`${path}/user`, this.checkValidation(), AuthorizationMiddleware(), PromiseMiddleware(this.updateUser));
+        this.router.delete(`${path}/user`, PromiseMiddleware(this.deleteUser));
 
         return router;
     }
 
-    getUsers = async (req: Request, res: Response) => {
-        const allUsers: Array<object | undefined> = await this.userService.getAllUsers();
+    getUsers = async (req: Request, res: Response): Promise<any> => {
+        const allUsers: object | undefined = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
             return res.status(HttpStatus.NOT_FOUND).send();
@@ -59,7 +62,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(allUsers);
     }
 
-    getUser = async (req: Request, res: Response) => {
+    getUser = async (req: Request, res: Response): Promise<any> => {
         const user = await this.userService.getUserWithID(req.query.id);
 
         if (!user) {
@@ -69,7 +72,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    getEmail = async (req: Request, res: Response) => {
+    getEmail = async (req: Request, res: Response): Promise<any> => {
         const user = await this.userService.getUserByEmail(req.body.email);
 
         if (!user) {
@@ -79,7 +82,7 @@ export default class UserController {
         res.status(HttpStatus.OK).send(user);
     }
 
-    updateUser = async (req: Request, res: Response) => {
+    updateUser = async (req: Request, res: Response): Promise<any> => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -88,6 +91,11 @@ export default class UserController {
 
         const userId = req.query.id;
         const userRoleObject = await this.userService.getUserRoleByUserId(userId);
+
+        if(!userRoleObject) {
+            return res.status(HttpStatus.BAD_REQUEST).send();
+        }
+
         const role = userRoleObject.dataValues.role;
 
         if (role === 'admin') {

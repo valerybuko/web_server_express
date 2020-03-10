@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
-import {injectable} from 'inversify';
-import {IMailerService, MailerModel} from '../Domain';
+import { injectable } from 'inversify';
+import { IMailerService, MailerModel } from '../Domain';
 
 @injectable()
 export default class MailerService implements IMailerService {

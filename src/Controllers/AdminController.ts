@@ -1,8 +1,9 @@
 import express, { Router, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import {inject, injectable} from "inversify";
+import { inject, injectable } from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
+import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ export default class AdminController {
     private initializeRoutes = () => {
         const path = '/api/admin';
 
-        this.router.put(`${path}/change`, this.changeUserRole);
+        this.router.put(`${path}/change`, PromiseMiddleware(this.changeUserRole));
 
         return router;
     }

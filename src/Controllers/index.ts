@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import {IBaseController, IAccountController, IUserController} from '../Domain';
+import { IBaseController, IAccountController, IUserController } from '../Domain';
 import { injectable, inject } from 'inversify';
 import types from '../Ioc/types';
 import IAdminController from "../Domain/Interfaces/IAdminController";

@@ -2,9 +2,10 @@ import express, { Router, Response, Request } from 'express';
 import 'reflect-metadata';
 import types from '../Ioc/types';
 import { inject, injectable } from 'inversify';
-import {IAuthorizeService, IMailerService, IPasswordService, MailerModel, IUserService } from '../Domain';
+import { IAuthorizeService, IMailerService, IPasswordService, MailerModel, IUserService } from '../Domain';
 import HttpStatus from 'http-status-codes';
 import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
+import AuthorizationMiddleware from "../Middlewares/AuthorizationMiddleware";
 const { check, validationResult } = require('express-validator/check');
 
 const router = express.Router();
@@ -58,12 +59,12 @@ export default class AccountController {
         const path = '/api/account';
 
         this.router.post(`${path}/create`, this.checkValidation(), PromiseMiddleware(this.createAccount));
-        this.router.put(`${path}/confirm`, this.confirmAccount);
-        this.router.post(`${path}/login`, this.checkValidation(), this.loginAccount);
-        this.router.post(`${path}/logout`, this.logoutAccount);
-        this.router.post(`${path}/changepass`, this.checkEmailBeforePasswordReset(), this.changePasswordAccount);
-        this.router.put(`${path}/updatepass`, this.checkPasswordBeforeUpdate(), this.updatePasswordAccount);
-        this.router.put(`${path}/refresh`, this.refreshTokensAccount);
+        this.router.put(`${path}/confirm`, PromiseMiddleware(this.confirmAccount));
+        this.router.post(`${path}/login`, this.checkValidation(), PromiseMiddleware(this.loginAccount));
+        this.router.post(`${path}/logout`, AuthorizationMiddleware(), PromiseMiddleware(this.logoutAccount));
+        this.router.post(`${path}/changepass`, this.checkEmailBeforePasswordReset(), PromiseMiddleware(this.changePasswordAccount));
+        this.router.put(`${path}/updatepass`, this.checkPasswordBeforeUpdate(), PromiseMiddleware(this.updatePasswordAccount));
+        this.router.put(`${path}/refresh`, PromiseMiddleware(this.refreshTokensAccount));
 
         return router;
     }
