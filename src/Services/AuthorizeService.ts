@@ -116,13 +116,11 @@ export default class AuthorizeService implements IAuthorizeService {
         return token;
     }
 
-    verifyToken = (token: string, REFRESH_TOKEN_SECRET: string): Promise<any> => jwt.verify(token, this.REFRESH_TOKEN_SECRET, (err) => {
-        if (err) {
-            return err
-        } else {
-            return true
-        }
-    });
+    verifyToken = async (token: string, REFRESH_TOKEN_SECRET: string): Promise<boolean> => {
+        const  isVerified = await jwt.verify(token, this.REFRESH_TOKEN_SECRET);
+        return typeof isVerified === "object";
+    };
+
 
     deleteSession = async (id: number): Promise<void> => {
         await this.redisRepository.deleteSession(`user${id}`);
