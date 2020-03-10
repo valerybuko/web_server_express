@@ -1,14 +1,14 @@
-import { Router } from 'express';
-import QueryModel from "../Models/QueryModel";
+import { Router, Request, Response } from 'express';
+import ReqResModel from "../Models/ReqResModel";
 
 export default interface IUserController {
   router: Router;
-  checkValidation (): any;
-  checkEmail (): any;
-  initializeRoutes (): any;
-  getUsers (model: QueryModel): any;
-  getUser (model: QueryModel): any;
-  getEmail (model: QueryModel): any;
-  updateUser (model: QueryModel): any;
-  deleteUser (model: QueryModel): any;
+  checkValidation (): Array<string | undefined>;
+  checkEmail (): Array<string | undefined>;
+  initializeRoutes (): Router;
+  getUsers (model: ReqResModel): Array<object> | Array<undefined>;
+  getUser (model: ReqResModel): object | null | undefined;
+  getEmail (model: ReqResModel): object | null | undefined;
+  updateUser (model: ReqResModel): Promise<void>;
+  deleteUser (model: ReqResModel): number;
 }

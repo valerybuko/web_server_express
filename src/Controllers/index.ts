@@ -11,6 +11,12 @@ export default class BaseController implements IBaseController {
     private readonly adminController: IAdminController
     router: Router
 
+    private initializeRoutes() {
+        this.router.use('/', this.accountController.router);
+        this.router.use('/', this.userController.router);
+        this.router.use('/', this.adminController.router);
+    }
+
     constructor(@inject(types.AccountController) accountController: IAccountController,
                 @inject(types.UserController) userController: IUserController,
                 @inject(types.AdminController) adminController: IAdminController) {
@@ -19,11 +25,5 @@ export default class BaseController implements IBaseController {
         this.userController = userController;
         this.adminController = adminController;
         this.initializeRoutes()
-    }
-
-    private initializeRoutes() {
-        this.router.use('/', this.accountController.router);
-        this.router.use('/', this.userController.router);
-        this.router.use('/', this.adminController.router);
     }
 }

@@ -5,7 +5,6 @@ import { inject, injectable } from 'inversify';
 import {IAuthorizeService, IMailerService, IPasswordService, MailerModel, IUserService } from '../Domain';
 import HttpStatus from 'http-status-codes';
 import PromiseMiddleware from "../Middlewares/PromiseMiddleware";
-import AuthorizationMiddleware from "../Middlewares/AuthorizationMiddleware";
 const { check, validationResult } = require('express-validator/check');
 
 const router = express.Router();
@@ -13,7 +12,7 @@ const router = express.Router();
 @injectable()
 export default class AccountController {
     router: Router;
-    REFRESH_TOKEN_SECRET: string;
+    REFRESH_TOKEN_SECRET: string | undefined;
     private readonly authorizeService: IAuthorizeService
     private readonly passwordService: IPasswordService
     private readonly mailerService: IMailerService
@@ -24,7 +23,7 @@ export default class AccountController {
                 @inject(types.UserService) userService: IUserService,
                 @inject(types.PasswordService) passwordService: IPasswordService) {
         this.router = express.Router();
-        this.REFRESH_TOKEN_SECRET = 'abc123';
+        this.REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
         this.authorizeService = authorizeService;
         this.userService = userService;
         this.passwordService = passwordService;
@@ -58,7 +57,7 @@ export default class AccountController {
     private initializeRoutes = () => {
         const path = '/api/account';
 
-        this.router.post(`${path}/create`, this.checkValidation(), AuthorizationMiddleware(), PromiseMiddleware(this.createAccount));
+        this.router.post(`${path}/create`, this.checkValidation(), PromiseMiddleware(this.createAccount));
         this.router.put(`${path}/confirm`, this.confirmAccount);
         this.router.post(`${path}/login`, this.checkValidation(), this.loginAccount);
         this.router.post(`${path}/logout`, this.logoutAccount);
@@ -151,7 +150,7 @@ export default class AccountController {
         if (!isCorrectPassword) {
             return res.status(HttpStatus.UNAUTHORIZED).send();
         }
-        console.log('===Is Correct', isCorrectPassword);
+
         const refreshToken = await this.authorizeService.createRefreshToken(appuser, `${process.env.JWT_REFRESH_LIFETIME}`);
         const userSessionNumber = refreshToken.dataValues.id;
 
@@ -225,6 +224,11 @@ export default class AccountController {
 
         const userId = isConfirmToken.dataValues.userId;
         const newUserObject = await this.userService.getUserWithID(userId);
+
+        if (!newUserObject) {
+            return res.status(HttpStatus.BAD_REQUEST).send();
+        }
+
         const newUser = newUserObject.dataValues;
 
         const salt = this.passwordService.generateSalt();
@@ -241,7 +245,7 @@ export default class AccountController {
         const mailerModel: MailerModel = { email: req.body.confirmation_email, token: confirmationToken }
         await this.mailerService.sendUserChangePasswordConfirmation(mailerModel);
 
-        res.status(HttpStatus.OK).send('Password has been updated');
+        res.status(HttpStatus.OK).send();
     }
     refreshTokensAccount = async (req: Request, res: Response) => {
         const token = req.body.refreshToken;

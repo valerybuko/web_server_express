@@ -1,9 +1,9 @@
 import express, {Request, Response, Router} from 'express';
 import HttpStatus from 'http-status-codes';
-import {inject, injectable} from "inversify";
+import { inject, injectable } from "inversify";
 import types from "../Ioc/types";
 import IUserService from "../Domain/Interfaces/IUserService";
-import {IPasswordService} from "../Domain";
+import { IPasswordService } from "../Domain";
 
 const router = express.Router();
 const {check, validationResult} = require('express-validator/check');
@@ -50,7 +50,7 @@ export default class UserController {
     }
 
     getUsers = async (req: Request, res: Response) => {
-        const allUsers = await this.userService.getAllUsers();
+        const allUsers: Array<object | undefined> = await this.userService.getAllUsers();
 
         if (!allUsers.length) {
             return res.status(HttpStatus.NOT_FOUND).send();

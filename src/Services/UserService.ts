@@ -2,14 +2,16 @@ import PasswordService from "./PasswordService";
 import Users from "../Dal/MySql/Models/UsersModel";
 import UserRoles from "../Dal/MySql/Models/UserRolesModel";
 import UsersSessions from "../Dal/MySql/Models/UsersSessionsModel";
-import {injectable} from "inversify";
+import { injectable } from "inversify";
+import UserEntity from "../Domain/Entities/UserEntity";
+import UserRoleEntity from "../Domain/Entities/UserRoleEntity";
 
 @injectable()
 export default class UserService {
     constructor() {
     }
 
-    addNewUser = (user: any) => {
+    addNewUser = (user: UserEntity): Promise<UserEntity | undefined> => {
         const passwordService = new PasswordService(); // delete new
         const salt = passwordService.generateSalt();
         const password = passwordService.generateHash(salt, user.password)
@@ -17,11 +19,11 @@ export default class UserService {
         return Users.create({ username, email, password, salt, city, birthdate })
     }
 
-    createUserRole = async (userrole: string, id: number) => {
+    createUserRole = async (userrole: string, id: number): Promise<UserRoleEntity | undefined> => {
         return UserRoles.create({role: userrole, userId: id});
     }
 
-    changedUserRole = async (userrole: string, id: number) => {
+    changedUserRole = async (userrole: string, id: number): Promise<UserRoleEntity | undefined> => {
         return UserRoles.update({ role: userrole }, {
             where: {
                 userId: id
@@ -29,19 +31,19 @@ export default class UserService {
         });
     }
 
-    getAllUsers = () => {
+    getAllUsers = (): Promise<UserEntity | undefined> => {
         return Users.findAll({raw:true})
     }
 
-    getUserWithID = (id: number) => {
+    getUserWithID = (id: number): Promise<UserEntity | undefined> => {
         return Users.findByPk(id)
     }
 
-    getRoleWithID = (id: number) => {
+    getRoleWithID = (id: number): Promise<UserEntity | undefined> => {
         return UserRoles.findByPk(id)
     }
 
-    confirmUser = (id: number) => {
+    confirmUser = (id: number): Promise<UserEntity | undefined> => {
         return Users.update({ isConfirm: true }, {
             where: {
                 id
@@ -49,7 +51,7 @@ export default class UserService {
         })
     }
 
-    unconfirmUser = (id: number) => {
+    unconfirmUser = (id: number): Promise<UserEntity | undefined> => {
         return Users.update({ isConfirm: false }, {
             where: {
                 id
@@ -57,7 +59,7 @@ export default class UserService {
         })
     }
 
-    updateUser = (id: number, user: any, salt: string, password: string) => {
+    updateUser = (id: number, user: any, salt: string, password: string): Promise<UserEntity | undefined> => {
         const { username, email, role, isConfirm, city, birthdate } = user;
         return Users.update({ username, email, password, salt, role, isConfirm, city, birthdate }, {
             where: {
@@ -66,7 +68,7 @@ export default class UserService {
         })
     }
 
-    updateUserPassword = (id: number, password: string, salt: string) => {
+    updateUserPassword = (id: number, password: string, salt: string): Promise<UserEntity | undefined> => {
         return Users.update({ password, salt }, {
             where: {
                 id
@@ -74,7 +76,7 @@ export default class UserService {
         })
     };
 
-    deleteUser = (id: number) => {
+    deleteUser = (id: number): Promise<UserEntity | undefined> => {
         return Users.destroy({
             where: {
                 id
@@ -82,7 +84,7 @@ export default class UserService {
         })
     }
 
-    deleteUserSession = (id: number) => {
+    deleteUserSession = (id: number): Promise<number> => {
         return UsersSessions.destroy({
             where: {
                 userId: id
@@ -90,7 +92,7 @@ export default class UserService {
         })
     }
 
-    getUserByEmail = (email: string) => {
+    getUserByEmail = (email: string): Promise<UserEntity | undefined> => {
         return Users.findOne({
             where: {
                 email
@@ -98,7 +100,7 @@ export default class UserService {
         });
     }
 
-    getUserRoleByUserId = (id: number) => {
+    getUserRoleByUserId = (id: number): Promise<UserRoleEntity | undefined> => {
         return UserRoles.findOne({
             where: {
                 userId: id
@@ -106,7 +108,7 @@ export default class UserService {
         });
     }
 
-    checkAdminUserRole = async (id: number) => {
+    checkAdminUserRole = async (id: number): Promise<string> => {
         const userRolesObject = await this.getUserRoleByUserId(id);
         const userRole = userRolesObject.dataValues.role;
         return userRole;

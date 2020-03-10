@@ -1,12 +1,9 @@
 import express, { Express } from 'express';
-import { injectable } from 'inversify';
 import boom from 'express-boom';
 import bodyParser from 'body-parser';
-import BaseController from "./Controllers";
-import { IBaseController, IMailerService } from './Domain/Interfaces';
+import { IBaseController } from './Domain';
 import Ioc from './Ioc';
 import Types from './Ioc/types';
-import MailerService from './Services/MailerService';
 /*import mongoose from 'mongoose';*/
 
 const app = express();

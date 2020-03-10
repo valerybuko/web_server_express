@@ -8,7 +8,8 @@ const TYPES = {
   UserService: Symbol.for('IUserService'),
   UserController: Symbol.for('IUserController'),
   PasswordService: Symbol.for('IPasswordService'),
-  AdminController: Symbol.for('IAdminController')
+  AdminController: Symbol.for('IAdminController'),
+  RedisRepository: Symbol.for('IRedisRepository')
 }
 
 export default TYPES

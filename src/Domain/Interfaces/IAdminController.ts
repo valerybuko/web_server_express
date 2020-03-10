@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import QueryModel from "../Models/QueryModel";
+import ReqResModel from "../Models/ReqResModel";
 
 export default interface IAccountController {
   router: Router;
-  initializeRoutes (): any;
-  changeUserRole (model: QueryModel): any;
+  initializeRoutes (): Router;
+  changeUserRole (model: ReqResModel): Promise<void>;
 }

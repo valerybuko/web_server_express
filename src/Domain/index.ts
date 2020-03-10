@@ -7,6 +7,7 @@ import IUserController from "./Interfaces/IUserController";
 import IUserService from "./Interfaces/IUserService";
 import IPasswordService from "./Interfaces/IPasswordService";
 import IAdminController from "./Interfaces/IAdminController";
+import IRedisRepository from "./Interfaces/IRedisRepository";
 
 export {
     IBaseController,
@@ -18,4 +19,5 @@ export {
     IUserService,
     IPasswordService,
     IAdminController,
+    IRedisRepository
 }

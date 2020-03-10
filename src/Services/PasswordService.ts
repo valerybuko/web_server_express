@@ -4,7 +4,7 @@ import {injectable} from "inversify";
 @injectable()
 export default class PasswordService {
     bytesSize: number;
-    encodingType: string;
+    encodingType: any;
     algorithmType: any;
 
     constructor() {
@@ -13,15 +13,15 @@ export default class PasswordService {
         this.algorithmType = 'sha256';
     }
 
-    generateSalt = () => {
+    generateSalt = (): string => {
         return crypto.randomBytes(this.bytesSize).toString(this.encodingType);
     }
 
-    generateHash = (salt: string, password: string) => {
+    generateHash = (salt: string, password: string): string => {
         return  crypto.createHash(this.algorithmType).update(password + salt).digest(this.encodingType);
     }
 
-    comparePassword = (salt: string, password: string, hashedPassword: string) => {
+    comparePassword = (salt: string, password: string, hashedPassword: string): boolean => {
         return this.generateHash(salt, password) === hashedPassword;
     }
 }

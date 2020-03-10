@@ -9,7 +9,7 @@ import {
   IUserController,
   IUserService,
   IPasswordService,
-  IAdminController,
+  IAdminController, IRedisRepository,
 } from '../Domain';
 import BaseController from '../Controllers';
 import MailerService from '../Services/MailerService';
@@ -19,6 +19,7 @@ import UserController from "../Controllers/UserController";
 import UserService from "../Services/UserService";
 import PasswordService from "../Services/PasswordService";
 import AdminController from "../Controllers/AdminController";
+import RedisRepository from "../Dal/Redis/Repository";
 
 const Ioc = new Container();
 
@@ -30,6 +31,7 @@ Ioc.bind<IUserController>(TYPES.UserController).to(UserController);
 Ioc.bind<IUserService>(TYPES.UserService).to(UserService);
 Ioc.bind<IPasswordService>(TYPES.PasswordService).to(PasswordService);
 Ioc.bind<IAdminController>(TYPES.AdminController).to(AdminController);
+Ioc.bind<IRedisRepository>(TYPES.RedisRepository).to(RedisRepository);
 
 
 export default Ioc

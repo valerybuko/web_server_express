@@ -1,3 +1,5 @@
+/*
+
 import mongoose from 'mongoose';
 import { CompanyDevelopmentSchema } from "../Dal/MongoDB/Mongoose/CompanyDevelopmentSchema";
 
@@ -49,3 +51,5 @@ export const deletePlan = (req, res) => {
         res.json({ message: 'successfully deleted contact' });
     });
 }
+
+*/

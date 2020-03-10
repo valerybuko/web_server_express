@@ -17,7 +17,7 @@ export default class MailerService implements IMailerService {
         });
     }
 
-    sendUserInitialConfirmation = async (model: MailerModel) => {
+    sendUserInitialConfirmation = async (model: MailerModel): Promise<void> => {
         const mailOptions = {
             from: 'itechartgroup.valerybuko@gmail.com',
             to: model.email,
@@ -28,7 +28,7 @@ export default class MailerService implements IMailerService {
         await this.mailer(mailOptions);
     }
 
-    sendUserChangePasswordConfirmation = async (model: MailerModel) => {
+    sendUserChangePasswordConfirmation = async (model: MailerModel): Promise<void> => {
         const mailOptions = {
             from: 'itechartgroup.valerybuko@gmail.com',
             to: model.email,
@@ -39,7 +39,7 @@ export default class MailerService implements IMailerService {
         await this.mailer(mailOptions);
     }
 
-    sendPasswordConfirmation = async (model: MailerModel) => {
+    sendPasswordConfirmation = async (model: MailerModel): Promise<void> => {
         const mailOptions = {
             from: 'itechartgroup.valerybuko@gmail.com',
             to: model.email,
